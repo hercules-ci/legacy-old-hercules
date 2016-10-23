@@ -1,4 +1,3 @@
-{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TypeOperators     #-}
 
@@ -6,12 +5,11 @@ module Lib
   ( startApp
   ) where
 
-import           Data.Text
 import           Network.Wai
 import           Network.Wai.Handler.Warp
 import           Servant
 
-type API = Get '[JSON] Text
+import API
 
 app :: Application
 app = serve (Proxy :: Proxy API) server
