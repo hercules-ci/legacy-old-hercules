@@ -5,11 +5,11 @@ module Hercules.Lib
   ( startApp
   ) where
 
-import           Network.Wai
-import           Network.Wai.Handler.Warp
-import           Servant
+import Network.Wai
+import Network.Wai.Handler.Warp
+import Servant
 
-import           Hercules.API
+import Hercules.API
 
 app :: Application
 app = serve (Proxy :: Proxy API) server
