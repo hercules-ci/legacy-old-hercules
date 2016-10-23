@@ -17,6 +17,7 @@ library
   hs-source-dirs:      src
   exposed-modules:     Hercules.Lib
                        Hercules.API
+                       Hercules.Config
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , opaleye
@@ -35,6 +36,7 @@ executable hercules
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , hercules
+                     , optparse-applicative
   default-language:    Haskell2010
 
 test-suite test
