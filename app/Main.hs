@@ -1,6 +1,6 @@
 module Main where
 
-import Lib
+import           Hercules.Lib
 
 main :: IO ()
 main = startApp

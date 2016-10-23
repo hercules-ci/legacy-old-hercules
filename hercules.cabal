@@ -15,8 +15,8 @@ cabal-version:       >=1.10
 
 library
   hs-source-dirs:      src
-  exposed-modules:     Lib
-                       API
+  exposed-modules:     Hercules.Lib
+                       Hercules.API
   build-depends:       base >= 4.7 && < 5
                      , aeson
                      , opaleye

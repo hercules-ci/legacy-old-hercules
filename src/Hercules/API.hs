@@ -1,6 +1,6 @@
-{-# LANGUAGE DataKinds         #-}
+{-# LANGUAGE DataKinds #-}
 
-module API
+module Hercules.API
   ( API
   ) where
 
