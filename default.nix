@@ -1,6 +1,6 @@
 { mkDerivation, aeson, base, bytestring, opaleye
 , optparse-applicative, postgresql-simple, product-profunctors
-, safe, servant-server, stdenv, text, wai, warp
+, safe, servant-elm, servant-server, stdenv, text, wai, warp
 }:
 mkDerivation {
   pname = "hercules";
@@ -13,7 +13,7 @@ mkDerivation {
     safe servant-server text wai warp
   ];
   executableHaskellDepends = [
-    base bytestring optparse-applicative
+    base bytestring optparse-applicative servant-elm
   ];
   testHaskellDepends = [ base ];
   homepage = "https://github.com/expipiplus1/hercules#readme";
