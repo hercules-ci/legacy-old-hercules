@@ -1,6 +1,7 @@
 module Main where
 
-import Data.Foldable       (fold)
+import Data.ByteString.Char8 (pack)
+import Data.Foldable         (fold)
 import Options.Applicative
 
 import Hercules.Config
@@ -21,12 +22,13 @@ options = info (helper <*> parser) description
                             , showDefault
                             ]
                       )
-      <*> option auto (fold [ long "connection"
-                            , short 'c'
-                            , metavar "CONNECTION_STRING"
-                            , help "postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
-                            ]
-                      )
+      <*> (pack <$> strOption (fold [ long "connection"
+                                    , short 'c'
+                                    , metavar "CONNECTION_STRING"
+                                    , help "postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
+                                    ]
+                              )
+          )
 
     description = fold
       [ fullDesc

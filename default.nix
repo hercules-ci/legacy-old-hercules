@@ -1,6 +1,6 @@
-{ mkDerivation, aeson, base, opaleye, postgresql-simple
-, product-profunctors, servant-server, stdenv, text, wai, warp
-, postgresql
+{ mkDerivation, aeson, base, bytestring, opaleye
+, optparse-applicative, postgresql-simple, product-profunctors
+, safe, servant-server, stdenv, text, wai, warp
 }:
 mkDerivation {
   pname = "hercules";
@@ -9,12 +9,13 @@ mkDerivation {
   isLibrary = true;
   isExecutable = true;
   libraryHaskellDepends = [
-    aeson base opaleye postgresql-simple product-profunctors
-    servant-server text wai warp
+    aeson base bytestring opaleye postgresql-simple product-profunctors
+    safe servant-server text wai warp
   ];
-  executableHaskellDepends = [ base ];
+  executableHaskellDepends = [
+    base bytestring optparse-applicative
+  ];
   testHaskellDepends = [ base ];
-  buildDepends = [ postgresql ];
   homepage = "https://github.com/expipiplus1/hercules#readme";
   description = "A server to interface with a Hydra database";
   license = stdenv.lib.licenses.bsd3;

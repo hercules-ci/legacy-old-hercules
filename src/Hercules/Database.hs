@@ -151,7 +151,7 @@ buildoutputTable = Table "buildoutputs" (pBuildoutput
 
 ---- Types for table: buildproducts ----
 
-data Buildproduct' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 =
+data Buildproduct' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 =
   Buildproduct
     { buildproductBuild       :: c1
     , buildproductProductnr   :: c2
@@ -162,16 +162,17 @@ data Buildproduct' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 =
     , buildproductSha256Hash  :: c7
     , buildproductPath        :: c8
     , buildproductName        :: c9
-    , buildproductDefaultpath :: c10
+    , buildproductDescription :: c10
+    , buildproductDefaultpath :: c11
     }
 
-type Buildproduct = Buildproduct' Int32 Int32 Text Text (Maybe Int64) (Maybe Text) (Maybe Text) (Maybe Text) Text (Maybe Text)
+type Buildproduct = Buildproduct' Int32 Int32 Text Text (Maybe Int64) (Maybe Text) (Maybe Text) (Maybe Text) Text (Maybe Text) (Maybe Text)
 
-type BuildproductReadColumns = Buildproduct' (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGText) (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column PGText) (Column (Nullable PGText))
+type BuildproductReadColumns = Buildproduct' (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGText) (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type BuildproductWriteColumns = Buildproduct' (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGText) (Maybe (Column (Nullable PGInt8))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Column PGText) (Maybe (Column (Nullable PGText)))
+type BuildproductWriteColumns = Buildproduct' (Column PGInt4) (Column PGInt4) (Column PGText) (Column PGText) (Maybe (Column (Nullable PGInt8))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Column PGText) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText)))
 
-type BuildproductNullableColumns = Buildproduct' (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
+type BuildproductNullableColumns = Buildproduct' (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
 $(makeAdaptorAndInstance "pBuildproduct" ''Buildproduct')
 
@@ -187,6 +188,7 @@ buildproductTable = Table "buildproducts" (pBuildproduct
     , buildproductSha256Hash = optional "sha256hash"
     , buildproductPath = optional "path"
     , buildproductName = required "name"
+    , buildproductDescription = optional "description"
     , buildproductDefaultpath = optional "defaultpath"
     }
   )
@@ -969,7 +971,7 @@ projectmemberTable = Table "projectmembers" (pProjectmember
 
 ---- Types for table: projects ----
 
-data Project' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 =
+data Project' c1 c2 c3 c4 c5 c6 c7 =
   Project
     { projectName        :: c1
     , projectDisplayname :: c2
@@ -978,21 +980,18 @@ data Project' c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 =
     , projectHidden      :: c5
     , projectOwner       :: c6
     , projectHomepage    :: c7
-    , projectDeclfile    :: c8
-    , projectDecltype    :: c9
-    , projectDeclvalue   :: c10
     }
   deriving(Generic)
 
-type Project = Project' Text Text (Maybe Text) Int32 Int32 Text (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
+type Project = Project' Text Text (Maybe Text) Int32 Int32 Text (Maybe Text)
 
 instance ToJSON Project where
 
-type ProjectReadColumns = Project' (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column PGInt4) (Column PGInt4) (Column PGText) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
+type ProjectReadColumns = Project' (Column PGText) (Column PGText) (Column (Nullable PGText)) (Column PGInt4) (Column PGInt4) (Column PGText) (Column (Nullable PGText))
 
-type ProjectWriteColumns = Project' (Column PGText) (Column PGText) (Maybe (Column (Nullable PGText))) (Column PGInt4) (Column PGInt4) (Column PGText) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText)))
+type ProjectWriteColumns = Project' (Column PGText) (Column PGText) (Maybe (Column (Nullable PGText))) (Column PGInt4) (Column PGInt4) (Column PGText) (Maybe (Column (Nullable PGText)))
 
-type ProjectNullableColumns = Project' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
+type ProjectNullableColumns = Project' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
 $(makeAdaptorAndInstance "pProject" ''Project')
 
@@ -1006,9 +1005,6 @@ projectTable = Table "projects" (pProject
     , projectHidden = required "hidden"
     , projectOwner = required "owner"
     , projectHomepage = optional "homepage"
-    , projectDeclfile = optional "declfile"
-    , projectDecltype = optional "decltype"
-    , projectDeclvalue = optional "declvalue"
     }
   )
 
@@ -1232,24 +1228,23 @@ userroleTable = Table "userroles" (pUserrole
 
 ---- Types for table: users ----
 
-data User' c1 c2 c3 c4 c5 c6 c7 =
+data User' c1 c2 c3 c4 c5 c6 =
   User
-    { userUsername        :: c1
-    , userFullname        :: c2
-    , userEmailaddress    :: c3
-    , userPassword        :: c4
-    , userEmailonerror    :: c5
-    , userType            :: c6
-    , userPublicdashboard :: c7
+    { userUsername     :: c1
+    , userFullname     :: c2
+    , userEmailaddress :: c3
+    , userPassword     :: c4
+    , userEmailonerror :: c5
+    , userType         :: c6
     }
 
-type User = User' Text (Maybe Text) Text Text Int32 Text Bool
+type User = User' Text (Maybe Text) Text Text Int32 Text
 
-type UserReadColumns = User' (Column PGText) (Column (Nullable PGText)) (Column PGText) (Column PGText) (Column PGInt4) (Column PGText) (Column PGBool)
+type UserReadColumns = User' (Column PGText) (Column (Nullable PGText)) (Column PGText) (Column PGText) (Column PGInt4) (Column PGText)
 
-type UserWriteColumns = User' (Column PGText) (Maybe (Column (Nullable PGText))) (Column PGText) (Column PGText) (Column PGInt4) (Column PGText) (Column PGBool)
+type UserWriteColumns = User' (Column PGText) (Maybe (Column (Nullable PGText))) (Column PGText) (Column PGText) (Column PGInt4) (Column PGText)
 
-type UserNullableColumns = User' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGBool))
+type UserNullableColumns = User' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText))
 
 $(makeAdaptorAndInstance "pUser" ''User')
 
@@ -1262,7 +1257,6 @@ userTable = Table "users" (pUser
     , userPassword = required "password"
     , userEmailonerror = required "emailonerror"
     , userType = required "type"
-    , userPublicdashboard = required "publicdashboard"
     }
   )
 
