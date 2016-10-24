@@ -2,10 +2,14 @@
 
 module Hercules.Config
   ( Config(..)
+  , ConnectInfo(..)
   ) where
 
-import Network.Wai.Handler.Warp (Port)
+import Data.ByteString
+import Database.PostgreSQL.Simple (ConnectInfo (..))
+import Network.Wai.Handler.Warp   (Port)
 
-data Config = Config { configPort :: Port
+data Config = Config { configPort             :: Port
+                     , configConnectionString :: ByteString
                      }
   deriving(Read, Show)

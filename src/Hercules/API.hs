@@ -1,4 +1,5 @@
-{-# LANGUAGE DataKinds #-}
+{-# LANGUAGE DataKinds     #-}
+{-# LANGUAGE TypeOperators #-}
 
 module Hercules.API
   ( API
@@ -7,4 +8,7 @@ module Hercules.API
 import Data.Text
 import Servant
 
-type API = Get '[JSON] Text
+import Hercules.Database
+
+type API = "projectNames" :> Get '[JSON] [Text]
+      :<|> "project" :> Capture "projectName" Text :> Get '[JSON] (Maybe Project)

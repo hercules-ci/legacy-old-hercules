@@ -21,9 +21,11 @@ library
                        Hercules.Database
   build-depends:       base                >= 4.7 && < 5
                      , aeson
+                     , bytestring
                      , opaleye
                      , postgresql-simple
                      , product-profunctors
+                     , safe
                      , servant-server
                      , text
                      , wai
