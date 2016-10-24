@@ -18,7 +18,8 @@ library
   exposed-modules:     Hercules.Lib
                        Hercules.API
                        Hercules.Config
-  build-depends:       base >= 4.7 && < 5
+                       Hercules.Database
+  build-depends:       base                >= 4.7 && < 5
                      , aeson
                      , opaleye
                      , postgresql-simple
