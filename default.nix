@@ -30,7 +30,18 @@ let
         };
       };
 
-  f = import ./hercules.nix;
+ haskellPackageGen = { doHaddock ? true }: src:
+    let filteredSrc = pkgs.lib.cleanSource src;
+        package = pkgs.runCommand "default.nix" {} ''
+          ${pkgs.haskell.packages.ghc801.cabal2nix}/bin/cabal2nix \
+            ${filteredSrc} \
+            ${if doHaddock
+                then ""
+                else "--no-haddock"} \
+            > $out
+        '';
+    in import package;
+  f = haskellPackageGen {} ./.;
 
   drv = haskellPackages.callPackage f {};
 
