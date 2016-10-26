@@ -7,6 +7,17 @@ let
               mkDerivation = expr: args.mkDerivation (expr // newAttrs);
             });
       in self: super: {
+          servant-auth = self.callPackage (
+            haskellPackageGen { doFilter = false; } (
+              pkgs.fetchFromGitHub {
+                owner = "plow-technologies";
+                repo = "servant-auth";
+                rev = "e37c78c153048f0e0a8518645aa76a34d2d408b4";
+                sha256 = "16c6n36wawz25q3kzfs1lq5wp0aj9vdz2algnfpc3rdpg36ynwwx";
+              } + "/servant-auth"
+            )
+          ) {};
+
           servant-elm = overrideAttrs super.servant-elm {
             src = pkgs.fetchFromGitHub {
               owner = "mattjbray";
