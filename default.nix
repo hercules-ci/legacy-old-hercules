@@ -20,27 +20,16 @@ let
             doCheck = false;
           };
 
-          opaleye-gen = with self;
-            mkDerivation {
-              pname = "opaleye-gen";
-              version = "0.1.0.0";
-              src = pkgs.fetchFromGitHub{
+          opaleye-gen = self.callPackage (
+            haskellPackageGen { doFilter = false; } (
+              pkgs.fetchFromGitHub{
                 owner = "folsen";
                 repo = "opaleye-gen";
                 rev = "35e50cde7fbab9a2e082e00c4aa09b1dd99b5c43";
                 sha256 = "1bi27wfq0zx8s3iyz049lxvnr1fbjzp6ygrdy5lqwrz58xjmk1m5";
-              };
-              isLibrary = false;
-              isExecutable = true;
-              executableHaskellDepends = [
-                base bytestring cases containers countable-inflections opaleye
-                optparse-applicative postgresql-simple product-profunctors text
-                time
-              ];
-              homepage = "https://github.com/folsen/opaleye-gen#readme";
-              description = "A lightweight program to generate Opaleye boilerplate from a database";
-              license = stdenv.lib.licenses.bsd3;
-            };
+              }
+            )
+          ) {};
 
           #
           # New versions for opaleye-gen
@@ -90,11 +79,11 @@ let
         };
       };
 
- haskellPackageGen = { doHaddock ? true }: src:
-    let filteredSrc = pkgs.lib.cleanSource src;
+ haskellPackageGen = { doHaddock ? true, doFilter ? true }: src:
+    let filteredSrc = builtins.filterSource (n: t: t != "unknown") src;
         package = pkgs.runCommand "default.nix" {} ''
           ${pkgs.haskell.packages.ghc801.cabal2nix}/bin/cabal2nix \
-            ${filteredSrc} \
+            ${if doFilter then filteredSrc else src} \
             ${if doHaddock
                 then ""
                 else "--no-haddock"} \
