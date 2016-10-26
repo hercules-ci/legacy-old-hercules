@@ -26,6 +26,7 @@ library
                      , postgresql-simple
                      , product-profunctors
                      , safe
+                     , servant-auth-server
                      , servant-elm
                      , servant-server
                      , text
