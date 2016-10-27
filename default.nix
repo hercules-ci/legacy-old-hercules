@@ -26,10 +26,10 @@ let
 
           servant-elm = overrideAttrs super.servant-elm {
             src = pkgs.fetchFromGitHub {
-              owner = "mattjbray";
+              owner = "expipiplus1";
               repo = "servant-elm";
-              rev = "342646d6f1ea9adf8886322f26abca5adfd8a48b";
-              sha256 = "0jls7kfrq95i6chl8ljaqjyxmsg6f5qabvj580r3cvx79bhpr7r0";
+              rev = "d316cb00f66834fcd76b5211de9bf3f65c2f3c37";
+              sha256 = "1zf9wf11sn6i8kkfk0zgc6z555z59bwdx708g13yyn11wxcdbfcr";
             };
             libraryHaskellDepends = with self; [
               base elm-export lens servant servant-foreign text interpolate mockery
