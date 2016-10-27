@@ -4,6 +4,7 @@
 
 module Hercules.API
   ( API
+  , QueryAPI
   , Unprotected
   , Protected
   , User(..)
@@ -14,8 +15,11 @@ import Data.Text
 import GHC.Generics        (Generic)
 import Servant
 import Servant.Auth.Server
+import Servant.HTML.Blaze
+import Text.Blaze.Html5
 
 import Hercules.Database (Project)
+import Hercules.OAuth    (AuthCode, AuthState)
 
 data User = User { userName :: Text }
   deriving(Generic)
@@ -31,5 +35,13 @@ type Unprotected =
 
 type Protected = "protected" :> Get '[JSON] Text
 
-type API = Unprotected
+type QueryAPI = Unprotected
       :<|> Auth '[JWT] User :> Protected
+
+type Pages = "login" :> Get '[HTML] Html
+        :<|> "google-auth" :> QueryParam "state" AuthState
+                           :> QueryParam "code" AuthCode
+                           :> Get '[HTML] Html
+
+type API = QueryAPI
+      :<|> Pages

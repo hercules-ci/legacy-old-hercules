@@ -19,14 +19,23 @@ library
                        Hercules.API
                        Hercules.Config
                        Hercules.Database
+                       Hercules.OAuth
+                       Hercules.OAuth.Google
+                       Hercules.ServerEnv
   build-depends:       base                >= 4.7 && < 5
                      , aeson
+                     , blaze-html
                      , bytestring
+                     , hoauth2
+                     , http-client
+                     , http-client-tls
+                     , mtl
                      , opaleye
                      , postgresql-simple
                      , product-profunctors
                      , safe
                      , servant-auth-server
+                     , servant-blaze
                      , servant-elm
                      , servant-server
                      , text
@@ -43,6 +52,8 @@ executable hercules
                      , hercules
                      , bytestring
                      , optparse-applicative
+                     , strict
+                     , text
   default-language:    Haskell2010
 
 executable gen-elm

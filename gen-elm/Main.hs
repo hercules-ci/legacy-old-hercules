@@ -23,7 +23,7 @@ import Hercules.API
 
 spec :: Spec
 spec = Spec ["Hercules"]
-            (defElmImports : generateElmForAPI (Proxy :: Proxy API))
+            (defElmImports : generateElmForAPI (Proxy :: Proxy QueryAPI))
 
 instance forall lang ftype api auths a.
     ( HasForeign lang ftype api
