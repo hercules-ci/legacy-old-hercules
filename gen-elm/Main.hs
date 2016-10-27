@@ -17,6 +17,7 @@ import Elm
 import Servant.Auth.Server
 import Servant.Elm
 import Servant.Foreign
+import Servant.Foreign.Internal (Elem)
 
 import Hercules.API
 
@@ -24,12 +25,13 @@ spec :: Spec
 spec = Spec ["Hercules"]
             (defElmImports : generateElmForAPI (Proxy :: Proxy API))
 
-instance forall lang ftype api a.
+instance forall lang ftype api auths a.
     ( HasForeign lang ftype api
     , HasForeignType lang ftype Text
+    , JWT `Elem` auths
     )
-  => HasForeign lang ftype (Auth '[JWT] a :> api) where
-  type Foreign ftype (Auth '[JWT] a :> api) = Foreign ftype api
+  => HasForeign lang ftype (Auth auths a :> api) where
+  type Foreign ftype (Auth auths a :> api) = Foreign ftype api
 
   foreignFor lang Proxy Proxy subR =
     foreignFor lang Proxy (Proxy :: Proxy api) req
