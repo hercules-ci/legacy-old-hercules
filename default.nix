@@ -26,10 +26,10 @@ let
 
           servant-elm = overrideAttrs super.servant-elm {
             src = pkgs.fetchFromGitHub {
-              owner = "expipiplus1";
+              owner = "mattjbray";
               repo = "servant-elm";
-              rev = "d316cb00f66834fcd76b5211de9bf3f65c2f3c37";
-              sha256 = "1zf9wf11sn6i8kkfk0zgc6z555z59bwdx708g13yyn11wxcdbfcr";
+              rev = "86e75bb93917b1c3266ec0e45d998f24ee0c53b5";
+              sha256 = "1sys9kfg3s9m73cghxiwb5nnd0ig0hlz0j55mzd4idwrsabb1sb6";
             };
             libraryHaskellDepends = with self; [
               base elm-export lens servant servant-foreign text interpolate mockery
@@ -94,8 +94,8 @@ let
             src = pkgs.fetchFromGitHub {
               owner = "expipiplus1";
               repo = "elm-export";
-              rev = "5c6b39f3a0ace445c85c939822d6f10007ae8f11";
-              sha256 = "0mjq2y51jb26zxc8jqfs2cyvnczj54ic1zaad45gqh84vnx2jq5p";
+              rev = "ac78f31b398f104878019228dfd9ed0eae5cb5c6";
+              sha256 = "0g9ah8m2k191a17vjpgmx3rkwldfh3pajrkbhrihqsnx724rfmnl";
             };
           };
         };
