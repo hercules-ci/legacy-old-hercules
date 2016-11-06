@@ -29,6 +29,7 @@ authCallback authName packedState (AuthCode code) = do
 
   -- Extract the state
   state <- failWith err400 (unpackState packedState)
+  let clientState = authStateClientState state
   let redirectURI :: OA.URI
       redirectURI = encodeUtf8 . unFrontendURL . authStateFrontendURL $ state
       failWithBS err = redirectError redirectURI (decodeUtf8 . toStrict $ err)
@@ -41,7 +42,7 @@ authCallback authName packedState (AuthCode code) = do
         Left err -> redirectError redirectURI err
         Right user -> makeUserJWT user >>= \case
           Left _err  -> redirectError redirectURI "Failed to generate JWT"
-          Right jwt -> redirectSuccess redirectURI jwt
+          Right jwt -> redirectSuccess redirectURI jwt clientState
 
 redirectError :: OA.URI
               -> Text
@@ -54,10 +55,14 @@ redirectError uri message =
 redirectSuccess :: OA.URI
                 -> PackedJWT
                 -- ^ This user's token
+                -> Maybe AuthClientState
                 -> App a
-redirectSuccess uri jwt =
-  let param = [("jwt", unPackedJWT jwt)]
-  in redirectBS (uri `appendQueryParam` param)
+redirectSuccess uri jwt state =
+  let params = ("jwt", unPackedJWT jwt) :
+               case state of
+                 Nothing -> []
+                 Just s  -> [("state", encodeUtf8 . unAuthClientState $ s)]
+  in redirectBS (uri `appendQueryParam` params)
 
 unpackState :: AuthStatePacked -> Maybe AuthState
 unpackState = decode . fromStrict . encodeUtf8 . unAuthStatePacked
