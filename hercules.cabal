@@ -20,8 +20,16 @@ library
                        Hercules.Config
                        Hercules.Database
                        Hercules.OAuth
-                       Hercules.OAuth.Google
+                       Hercules.OAuth.Authenticators
+                       Hercules.OAuth.Authenticators.Google
+                       Hercules.OAuth.Types
+                       Hercules.Query
                        Hercules.ServerEnv
+                       Hercules.Static
+                       Control.Monad.Except.Extra
+                       Network.URI.Extra
+                       Servant.Mandatory
+                       Servant.Redirect
   build-depends:       base                >= 4.7 && < 5
                      , aeson
                      , blaze-html
@@ -29,10 +37,15 @@ library
                      , hoauth2
                      , http-client
                      , http-client-tls
+                     , interpolatedstring-perl6
+                     , markdown
+                     , monad-control
                      , mtl
+                     , network-uri
                      , opaleye
                      , postgresql-simple
                      , product-profunctors
+                     , resource-pool
                      , safe
                      , servant-auth-server
                      , servant-blaze

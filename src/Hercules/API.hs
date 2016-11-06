@@ -18,8 +18,9 @@ import Servant.Auth.Server
 import Servant.HTML.Blaze
 import Text.Blaze.Html5
 
-import Hercules.Database (Project)
-import Hercules.OAuth    (AuthCode, AuthState)
+import Hercules.Database             (Project)
+import Hercules.OAuth.Authenticators (AuthenticatorName)
+import Hercules.OAuth.Types          (AuthClientState, AuthCode, AuthState)
 
 data User = User { userName :: Text }
   deriving(Generic)
@@ -39,9 +40,13 @@ type QueryAPI = Unprotected
       :<|> Auth '[JWT] User :> Protected
 
 type Pages = "login" :> Get '[HTML] Html
-        :<|> "google-auth" :> QueryParam "state" AuthState
-                           :> QueryParam "code" AuthCode
-                           :> Get '[HTML] Html
+        :<|> "login" :> Capture "authType" AuthenticatorName
+                     :> QueryParam "state" AuthClientState
+                     :> Get '[HTML] Html
+        :<|> "auth-callback" :> Capture "authType" AuthenticatorName
+                             :> QueryParam "state" AuthState
+                             :> QueryParam "code" AuthCode
+                             :> Get '[HTML] Html
 
 type API = QueryAPI
       :<|> Pages

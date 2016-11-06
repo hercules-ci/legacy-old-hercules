@@ -3,7 +3,7 @@
 module Hercules.Config
   ( Config(..)
   , ConnectInfo(..)
-  , AuthInfo(..)
+  , AuthClientInfo(..)
   , HostName
   ) where
 
@@ -12,16 +12,14 @@ import Data.Text
 import Database.PostgreSQL.Simple (ConnectInfo (..))
 import Network.Wai.Handler.Warp   (Port)
 
+import Hercules.OAuth.Types
+
 type HostName = Text
 
 data Config = Config { configPort             :: Port
                      , configHostName         :: HostName
                      , configConnectionString :: ByteString
-                     , configGoogleAuthInfo   :: AuthInfo
+                     , configGoogleAuthInfo   :: Maybe AuthClientInfo
                      }
   deriving(Read, Show)
 
-data AuthInfo = AuthInfo { authInfoClientId     :: ByteString
-                         , authInfoClientSecret :: ByteString
-                         }
-  deriving(Read, Show)
