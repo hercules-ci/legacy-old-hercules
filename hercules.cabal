@@ -23,6 +23,7 @@ library
                        Hercules.OAuth.Authenticators
                        Hercules.OAuth.Authenticators.Google
                        Hercules.OAuth.Types
+                       Hercules.OAuth.User
                        Hercules.Query
                        Hercules.ServerEnv
                        Hercules.Static
@@ -32,12 +33,14 @@ library
                        Servant.Redirect
   build-depends:       base                >= 4.7 && < 5
                      , aeson
+                     , async
                      , blaze-html
                      , bytestring
                      , hoauth2
                      , http-client
                      , http-client-tls
                      , interpolatedstring-perl6
+                     , jose
                      , markdown
                      , monad-control
                      , mtl

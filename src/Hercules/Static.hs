@@ -7,14 +7,12 @@ This module describes some static pages being used for testing.
 module Hercules.Static
   ( welcomePage
   , loginPage
+  , loggedInPage
   ) where
 
 
 import Control.Monad.Except.Extra
-import Data.Aeson
-import Data.ByteString.Lazy          (toStrict)
 import Data.Text
-import Data.Text.Encoding
 import Network.URI
 import Servant
 import Servant.Redirect
@@ -27,31 +25,39 @@ import Hercules.OAuth.Types
 import Hercules.ServerEnv
 
 welcomePage :: App Html
-welcomePage = do
+welcomePage =
   let stateString = "my state"
-  let uri :: Text
-      uri = [qc|/login/google?state={escapeURIString isUnescapedInURIComponent stateString}|]
-  pure $ markdown defaultMarkdownSettings [qc|
+      frontendURL :: Text
+      frontendURL = "http://localhost:8080/logged-in"
+      uri :: Text
+      uri = [qc|/login/google?state={escapeURIString isUnescapedInURIComponent stateString}&frontendURL={frontendURL}|]
+  in pure $ markdown defaultMarkdownSettings [qc|
 # Login Page
 
-Logging in with state: {stateString}
+Logging in with
+
+- state: `{stateString}`
+- frontendURL: `{frontendURL}`
 
 [{uri}]({uri})
 |]
 
+loggedInPage :: Maybe Text -> App Html
+loggedInPage jwt =
+  pure $ markdown defaultMarkdownSettings [qc|
+# Logged in!
+
+JWT: `{jwt}`
+|]
+
 -- | This is a redirect for authenticating with google with the given user
 -- state.
-loginPage :: AuthenticatorName -> Maybe AuthClientState -> App a
-loginPage name stateString = do
-  state <- makeState stateString
-  authenticator <- failWith err404 (getAuthenticator name)
+loginPage :: AuthenticatorName -> Maybe AuthClientState -> FrontendURL -> App a
+loginPage name stateString frontendURL = do
+  state <- makeState frontendURL stateString
+  authenticator <- failWithM err404 (getAuthenticator name)
   let authURL = authenticationURLWithState authenticator state
   redirectBS (unUserAuthURL authURL)
 
-makeState :: Maybe AuthClientState -> App AuthState
-makeState = pure
-            . AuthState
-            . decodeUtf8
-            . toStrict
-            . encode
-            . fmap unAuthClientState
+makeState :: FrontendURL -> Maybe AuthClientState -> App AuthState
+makeState frontendURL = pure . AuthState frontendURL

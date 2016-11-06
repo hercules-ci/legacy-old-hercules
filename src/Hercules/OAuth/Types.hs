@@ -1,3 +1,4 @@
+{-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE StrictData                 #-}
@@ -16,21 +17,29 @@ module Hercules.OAuth.Types
   , authenticatorName
   , authenticatorConfig
   , authenticatorAuthQueryParams
+  , authenticatorGetUserInfo
+  , AuthState(..)
   -- * newtypes
   , AuthenticatorName(..)
-  , AuthState(..)
   , AuthClientState(..)
   , AuthCode(..)
+  , AuthStatePacked(..)
   , UserAuthURL(..)
   , OAuthEndpoint(..)
   , AccessTokenEndpoint(..)
+  , FrontendURL(..)
+  , PackedJWT(..)
   ) where
 
+import Data.Aeson
 import Data.ByteString
 import Data.Text
+import GHC.Generics         (Generic)
 import Network.OAuth.OAuth2 hiding (URI)
 import Network.URI.Extra
 import Servant              (FromHttpApiData)
+
+import Hercules.OAuth.User
 
 -- | The name of an authenticator, "google" or "github" for example
 newtype AuthenticatorName = AuthenticatorName
@@ -41,15 +50,28 @@ newtype AuthenticatorName = AuthenticatorName
 -- if the authentication is successful.
 newtype AuthClientState = AuthClientState
   { unAuthClientState :: Text }
-  deriving (FromHttpApiData)
+  deriving (ToJSON, FromJSON, Show, FromHttpApiData)
 
 -- | This is the value which is actually sent to the authenticator. It's a
 -- combination of the users data and some unique state generated on the server
 -- which is checked upon completion of the authentication to prevent CSRF
 -- attacks.
-newtype AuthState = AuthState
-  { unAuthState :: Text }
-  deriving (FromHttpApiData)
+data AuthState = AuthState
+  { authStateFrontendURL :: FrontendURL
+  , authStateClientState :: Maybe AuthClientState
+  }
+  deriving (Generic, Show)
+
+instance ToJSON AuthState where
+instance FromJSON AuthState where
+
+newtype AuthStatePacked = AuthStatePacked
+  { unAuthStatePacked :: Text }
+  deriving (FromHttpApiData, Show)
+
+newtype FrontendURL = FrontendURL
+  { unFrontendURL :: Text }
+  deriving (ToJSON, FromJSON, Show, FromHttpApiData)
 
 newtype AuthCode = AuthCode
   { unAuthCode :: Text }
@@ -65,6 +87,9 @@ newtype AccessTokenEndpoint = AccessTokenEndpoint
 newtype UserAuthURL = UserAuthURL
   { unUserAuthURL :: ByteString }
 
+newtype PackedJWT = PackedJWT
+  { unPackedJWT :: ByteString }
+
 -- | The Id and secret for a client on an external service
 data AuthClientInfo = AuthClientInfo
   { authClientInfoId     :: ByteString
@@ -72,16 +97,18 @@ data AuthClientInfo = AuthClientInfo
   }
   deriving(Read, Show)
 
-
 -- | A collection of all the information necessary to authenticate with a
 -- provider
 --
 -- One should use 'makeAuthenticator' to construct values of this type as the
 -- config and name must remain in sync.
-data OAuth2Authenticator = OAuth2Authenticator
+--
+-- The authentication validation takes place in the monad 'm'
+data OAuth2Authenticator m = OAuth2Authenticator
   { authenticatorName            :: AuthenticatorName
   , authenticatorConfig          :: OAuth2
   , authenticatorAuthQueryParams :: QueryParams
+  , authenticatorGetUserInfo     :: AccessToken -> m (Either Text User)
   }
 
 -- | Construct an 'OAuth2Authenticator'
@@ -95,12 +122,15 @@ makeAuthenticator
   -> OAuthEndpoint
   -> AccessTokenEndpoint
   -> AuthClientInfo
-  -> OAuth2Authenticator
+  -> (AccessToken -> m (Either Text User))
+  -> OAuth2Authenticator m
 makeAuthenticator makeCallback name queryParams
-                  authEndpoint accessTokenEndpoint AuthClientInfo{..} =
+                  authEndpoint accessTokenEndpoint AuthClientInfo{..}
+                  getUserInfo =
     OAuth2Authenticator { authenticatorName = name
                         , authenticatorConfig = config
                         , authenticatorAuthQueryParams = queryParams
+                        , authenticatorGetUserInfo = getUserInfo
                         }
   where
     config :: OAuth2

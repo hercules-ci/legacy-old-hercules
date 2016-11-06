@@ -1,79 +1,63 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE QuasiQuotes       #-}
 
 module Hercules.OAuth
   ( AuthState(..)
   , AuthCode(..)
-  , authPage
+  , authCallback
   ) where
 
-import Control.Monad.Except.Extra
-import Data.ByteString
-import Data.ByteString.Lazy          (toStrict)
-import Data.Text.Encoding
-import Network.OAuth.OAuth2
-import Servant
-import Text.Blaze.Html               (Html)
-import Text.InterpolatedString.Perl6
-import Text.Markdown                 (defaultMarkdownSettings, markdown)
+import           Control.Monad.Except.Extra
+import           Data.Aeson
+import           Data.ByteString.Lazy       (fromStrict, toStrict)
+import           Data.Text
+import           Data.Text.Encoding
+import           Network.OAuth.OAuth2
+import qualified Network.OAuth.OAuth2       as OA
+import           Servant
+import           Servant.Redirect
 
 import Hercules.OAuth.Authenticators
 import Hercules.OAuth.Types
 import Hercules.ServerEnv
 
-authPage :: AuthenticatorName -> AuthState -> AuthCode -> App Html
-authPage authName (AuthState state) (AuthCode code) = do
-  -- See if we can handle this particular authenticator
-  authenticator <- failWith err404 (getAuthenticator authName)
+authCallback :: AuthenticatorName -> AuthStatePacked -> AuthCode -> App a
+authCallback authName packedState (AuthCode code) = do
+  -- Can we handle this authenticator
+  authenticator <- failWithM err404 (getAuthenticator authName)
   let config = authenticatorConfig authenticator
 
+  -- Extract the state
+  state <- failWith err400 (unpackState packedState)
+  let redirectURI :: OA.URI
+      redirectURI = encodeUtf8 . unFrontendURL . authStateFrontendURL $ state
+      failWithBS err = redirectError redirectURI (decodeUtf8 . toStrict $ err)
+
+  -- Get the access token for this user
   withHttpManager (\m -> fetchAccessToken m config (encodeUtf8 code)) >>= \case
-    Left bs -> authFailure (toStrict bs)
-    Right token -> authSuccess token
+    Left err    -> failWithBS err
+    Right token ->
+      authenticatorGetUserInfo authenticator token >>= \case
+        Left err -> redirectError redirectURI err
+        Right user -> makeUserJWT user >>= \case
+          Left _err  -> redirectError redirectURI "Failed to generate JWT"
+          Right jwt -> redirectSuccess redirectURI jwt
 
-  where
+redirectError :: OA.URI
+              -> Text
+              -- ^ An error message
+              -> App a
+redirectError uri message =
+  let param = [("authFailure", encodeUtf8 message)]
+  in redirectBS (uri `appendQueryParam` param)
 
-    authFailure :: ByteString -> App Html
-    authFailure reason = pure $ markdown defaultMarkdownSettings [qc|
-# Authentication Failure
+redirectSuccess :: OA.URI
+                -> PackedJWT
+                -- ^ This user's token
+                -> App a
+redirectSuccess uri jwt =
+  let param = [("jwt", unPackedJWT jwt)]
+  in redirectBS (uri `appendQueryParam` param)
 
-## Reason
-
-{decodeUtf8 reason}
-|]
-
-    authSuccess :: AccessToken -> App Html
-    authSuccess token =
-      validateToken token >>= \case
-      Left bs -> authFailure (toStrict bs)
-      Right validated ->
-        userinfo token >>= \case
-          Left bs -> authFailure (toStrict bs)
-          Right info -> pure $ markdown defaultMarkdownSettings [qc|
-# Redirected
-
-- state: `{state}`
-
-- code: `{code}`
-
-- token: `{token}`
-
-- validated: `{validated}`
-
-- info: `{info}`
-|]
-
--- | Token Validation
-validateToken :: AccessToken
-              -> App (OAuth2Result ByteString)
-validateToken token = fmap toStrict <$>
-  withHttpManager (\m -> authGetBS' m token url)
-  where url = "https://www.googleapis.com/oauth2/v1/tokeninfo"
-
-userinfo :: AccessToken
-         -> App (OAuth2Result ByteString)
-userinfo token = fmap toStrict <$>
-  withHttpManager (\m -> authGetBS m token url)
-  where url = "https://www.googleapis.com/oauth2/v2/userinfo"
-
+unpackState :: AuthStatePacked -> Maybe AuthState
+unpackState = decode . fromStrict . encodeUtf8 . unAuthStatePacked

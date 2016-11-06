@@ -12,18 +12,21 @@ module Hercules.OAuth.Authenticators
   , authenticationURLWithState
   ) where
 
+import Data.Aeson
+import Data.ByteString      (ByteString)
+import Data.ByteString.Lazy (toStrict)
 import Data.Maybe           (catMaybes)
 import Data.Text
-import Data.Text.Encoding
 import Network.OAuth.OAuth2 hiding (URI)
 import Network.URI          (URI (..), URIAuth (..))
 
 import Hercules.Config
 import Hercules.OAuth.Authenticators.Google
 import Hercules.OAuth.Types
+import Hercules.ServerEnv                   (App)
 
 -- | Get a list of usable authentication services from the given config.
-configAuthenticatorList :: Config -> [OAuth2Authenticator]
+configAuthenticatorList :: Config -> [OAuth2Authenticator App]
 configAuthenticatorList Config{..} = catMaybes
   [ googleAuthenticator makeCallback <$> configGoogleAuthInfo ]
   where
@@ -34,10 +37,13 @@ configAuthenticatorList Config{..} = catMaybes
       in URI "http:" (Just authority) path "" ""
 
 -- | Get the URL to redirect clients to with the given state to roundtrip
-authenticationURLWithState :: OAuth2Authenticator -> AuthState -> UserAuthURL
+authenticationURLWithState :: OAuth2Authenticator m -> AuthState -> UserAuthURL
 authenticationURLWithState authenticator state =
-  let stateBS = encodeUtf8 . unAuthState $ state
+  let stateBS = packAuthState state
       queryParams = authenticatorAuthQueryParams authenticator
                     ++ [("state", stateBS)]
       config = authenticatorConfig authenticator
   in UserAuthURL $ authorizationUrl config `appendQueryParam` queryParams
+
+packAuthState :: AuthState -> ByteString
+packAuthState = toStrict . encode

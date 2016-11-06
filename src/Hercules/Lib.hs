@@ -11,30 +11,29 @@ import Network.Wai
 import Network.Wai.Handler.Warp
 import Safe                     (headMay)
 import Servant
-import Servant.Auth.Server      (AuthResult (..), defaultCookieSettings,
-                                 defaultJWTSettings, generateKey, makeJWT)
+import Servant.Auth.Server      (AuthResult (..), defaultCookieSettings)
 import Servant.Mandatory
 
 import Hercules.API
 import Hercules.Config
-import Hercules.Database  (Project)
+import Hercules.Database             (Project)
 import Hercules.OAuth
+import Hercules.OAuth.Authenticators
+import Hercules.OAuth.User
 import Hercules.Query
 import Hercules.ServerEnv
 import Hercules.Static
 
 startApp :: Config -> IO ()
 startApp config = do
-  env <- newEnv config
+  let authenticators = configAuthenticatorList config
+  env <- newEnv config authenticators
   run (configPort config) =<< app env
 
 app :: Env -> IO Application
 app env = do
-  key <- generateKey
   let api = Proxy :: Proxy API
-      jwtConfig = defaultJWTSettings key
-      authConfig = defaultCookieSettings :. jwtConfig :. EmptyContext
-  print =<< makeJWT (User "joe") jwtConfig Nothing
+      authConfig = defaultCookieSettings :. envJWTSettings env :. EmptyContext
   pure $ serveWithContext api authConfig (server env)
 
 server :: Env -> Server API
@@ -42,18 +41,21 @@ server env = enter (Nat (runApp env)) api
   where api = queryApi
               :<|> pages
         pages = welcomePage
-                :<|> loginPage
-                :<|> (mandatory2 . authPage)
+                :<|> (mandatory1 .: loginPage)
+                :<|> (mandatory2 . authCallback)
+                :<|> loggedInPage
         queryApi = unprotected :<|> protected
         unprotected = getProjectNames
                       :<|> getProject
         protected = getUser
 
+(.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
+(.:) = (.) . (.)
 
 getUser :: AuthResult User -> App Text
 getUser = \case
-  (Authenticated (User name)) -> pure name
-  _                           -> throwError err401
+  (Authenticated (User (Email email))) -> pure email
+  _                                    -> throwError err401
 
 getProjectNames :: App [Text]
 getProjectNames = runQueryWithConnection projectNameQuery
