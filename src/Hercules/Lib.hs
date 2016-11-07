@@ -42,7 +42,7 @@ server env = enter (Nat (runApp env)) api
               :<|> pages
         pages = welcomePage
                 :<|> (mandatory1 .: loginPage)
-                :<|> (mandatory2 . authCallback)
+                :<|> (mandatory1 .⋮ authCallback)
                 :<|> loggedInPage
         queryApi = unprotected :<|> protected
         unprotected = getProjectNames
@@ -51,6 +51,9 @@ server env = enter (Nat (runApp env)) api
 
 (.:) :: (c -> d) -> (a -> b -> c) -> a -> b -> d
 (.:) = (.) . (.)
+
+(.⋮) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
+(.⋮) = (.) . (.) . (.)
 
 getUser :: AuthResult User -> App Text
 getUser = \case

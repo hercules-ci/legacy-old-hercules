@@ -23,6 +23,7 @@ module Hercules.OAuth.Types
   , AuthenticatorName(..)
   , AuthClientState(..)
   , AuthCode(..)
+  , AuthError(..)
   , AuthStatePacked(..)
   , UserAuthURL(..)
   , OAuthEndpoint(..)
@@ -75,6 +76,10 @@ newtype FrontendURL = FrontendURL
 
 newtype AuthCode = AuthCode
   { unAuthCode :: Text }
+  deriving (FromHttpApiData)
+
+newtype AuthError = AuthError
+  { unAuthError :: Text }
   deriving (FromHttpApiData)
 
 newtype OAuthEndpoint = OAuthEndpoint

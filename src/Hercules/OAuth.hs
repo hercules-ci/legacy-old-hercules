@@ -21,28 +21,57 @@ import Hercules.OAuth.Authenticators
 import Hercules.OAuth.Types
 import Hercules.ServerEnv
 
-authCallback :: AuthenticatorName -> AuthStatePacked -> AuthCode -> App a
-authCallback authName packedState (AuthCode code) = do
+authCallback :: AuthenticatorName
+             -> Maybe AuthCode
+             -> Maybe AuthError
+             -> AuthStatePacked
+             -> App a
+authCallback authName maybeCode maybeError packedState = do
+  -- Extract the state
+  state <- failWith err400 (unpackState packedState)
+
+  case (maybeCode, maybeError) of
+    (Nothing, Nothing)   -> throwError err400
+    (Nothing, Just err)  -> handleError state err
+    (Just code, Nothing) -> handleCode authName state code
+    (Just _, Just _)     -> throwError err400
+
+handleError :: AuthState
+            -> AuthError
+            -> App a
+handleError state err = do
+  let redirectURI :: OA.URI
+      redirectURI = encodeUtf8 . unFrontendURL . authStateFrontendURL $ state
+  redirectError redirectURI (unAuthError err)
+
+handleCode :: AuthenticatorName
+           -> AuthState
+           -> AuthCode
+           -> App a
+handleCode authName state (AuthCode code) = do
   -- Can we handle this authenticator
   authenticator <- failWithM err404 (getAuthenticator authName)
   let config = authenticatorConfig authenticator
 
-  -- Extract the state
-  state <- failWith err400 (unpackState packedState)
   let clientState = authStateClientState state
-  let redirectURI :: OA.URI
+      redirectURI :: OA.URI
       redirectURI = encodeUtf8 . unFrontendURL . authStateFrontendURL $ state
       failWithBS err = redirectError redirectURI (decodeUtf8 . toStrict $ err)
 
   -- Get the access token for this user
-  withHttpManager (\m -> fetchAccessToken m config (encodeUtf8 code)) >>= \case
-    Left err    -> failWithBS err
-    Right token ->
-      authenticatorGetUserInfo authenticator token >>= \case
-        Left err -> redirectError redirectURI err
-        Right user -> makeUserJWT user >>= \case
-          Left _err  -> redirectError redirectURI "Failed to generate JWT"
-          Right jwt -> redirectSuccess redirectURI jwt clientState
+  token <- either failWithBS pure
+    =<< withHttpManager (\m -> fetchAccessToken m config (encodeUtf8 code))
+
+  -- Get the user info with the token
+  user <- either (redirectError redirectURI) pure
+    =<< authenticatorGetUserInfo authenticator token
+
+  -- Create a JWT
+  jwt <- either (const (redirectError redirectURI "Failed to create JWT")) pure
+    =<< makeUserJWT user
+
+  -- Return to the frontend
+  redirectSuccess redirectURI jwt clientState
 
 redirectError :: OA.URI
               -> Text
