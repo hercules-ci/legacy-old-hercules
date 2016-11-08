@@ -20,6 +20,7 @@ data Config = Config { configPort             :: Port
                      , configHostName         :: HostName
                      , configConnectionString :: ByteString
                      , configGoogleAuthInfo   :: Maybe AuthClientInfo
+                     , configGitHubAuthInfo   :: Maybe AuthClientInfo
                      }
   deriving(Read, Show)
 

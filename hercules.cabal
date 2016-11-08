@@ -21,6 +21,7 @@ library
                        Hercules.Database
                        Hercules.OAuth
                        Hercules.OAuth.Authenticators
+                       Hercules.OAuth.Authenticators.GitHub
                        Hercules.OAuth.Authenticators.Google
                        Hercules.OAuth.Types
                        Hercules.OAuth.User

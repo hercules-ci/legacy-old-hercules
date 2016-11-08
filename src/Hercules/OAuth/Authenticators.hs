@@ -21,6 +21,7 @@ import Network.OAuth.OAuth2 hiding (URI)
 import Network.URI          (URI (..), URIAuth (..))
 
 import Hercules.Config
+import Hercules.OAuth.Authenticators.GitHub
 import Hercules.OAuth.Authenticators.Google
 import Hercules.OAuth.Types
 import Hercules.ServerEnv                   (App)
@@ -28,7 +29,9 @@ import Hercules.ServerEnv                   (App)
 -- | Get a list of usable authentication services from the given config.
 configAuthenticatorList :: Config -> [OAuth2Authenticator App]
 configAuthenticatorList Config{..} = catMaybes
-  [ googleAuthenticator makeCallback <$> configGoogleAuthInfo ]
+  [ googleAuthenticator makeCallback <$> configGoogleAuthInfo
+  , githubAuthenticator makeCallback <$> configGitHubAuthInfo
+  ]
   where
     makeCallback :: AuthenticatorName -> URI
     makeCallback (AuthenticatorName name) =

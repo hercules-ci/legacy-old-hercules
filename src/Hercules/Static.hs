@@ -29,8 +29,9 @@ welcomePage =
   let stateString = "my state"
       frontendURL :: Text
       frontendURL = "http://localhost:8080/logged-in"
-      uri :: Text
-      uri = [qc|/login/google?state={escapeURIString isUnescapedInURIComponent stateString}&frontendURL={frontendURL}|]
+      uriGoogle, uriGitHub :: Text
+      uriGoogle = [qc|/login/google?state={escapeURIString isUnescapedInURIComponent stateString}&frontendURL={frontendURL}|]
+      uriGitHub = [qc|/login/github?state={escapeURIString isUnescapedInURIComponent stateString}&frontendURL={frontendURL}|]
   in pure $ markdown defaultMarkdownSettings [qc|
 # Login Page
 
@@ -39,7 +40,8 @@ Logging in with
 - state: `{stateString}`
 - frontendURL: `{frontendURL}`
 
-[{uri}]({uri})
+- [google]({uriGoogle})
+- [github]({uriGitHub})
 |]
 
 loggedInPage :: Maybe Text -> App Html

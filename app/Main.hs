@@ -57,6 +57,7 @@ options = info (helper <*> parser) description
                               )
           )
       <*> optional (authInfoParser "google")
+      <*> optional (authInfoParser "github")
 
     authInfoParser name = AuthClientInfo
       <$> (pack <$> strOption (fold [ long (name ++ "-client")
