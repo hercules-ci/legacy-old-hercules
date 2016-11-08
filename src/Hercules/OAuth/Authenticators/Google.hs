@@ -49,7 +49,7 @@ googleAuthenticator
   :: (AuthenticatorName -> URI)
   -> AuthClientInfo
   -> OAuth2Authenticator App
-googleAuthenticator makeCallback clientInfo=
+googleAuthenticator makeCallback clientInfo =
   makeAuthenticator makeCallback
                     (AuthenticatorName "google")
                     googleScopeEmail
@@ -59,7 +59,8 @@ googleAuthenticator makeCallback clientInfo=
                     (googleGetUserInfo clientInfo)
 
 googleOAuthEndpoint :: OAuthEndpoint
-googleOAuthEndpoint = OAuthEndpoint . fromJust . parseURI $ "https://accounts.google.com/o/oauth2/auth"
+googleOAuthEndpoint = OAuthEndpoint . fromJust . parseURI
+                    $ "https://accounts.google.com/o/oauth2/auth"
 
 googleAccessTokenEndpoint :: AccessTokenEndpoint
 googleAccessTokenEndpoint = AccessTokenEndpoint . fromJust . parseURI $ "https://www.googleapis.com/oauth2/v3/token"
