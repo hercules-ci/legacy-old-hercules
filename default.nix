@@ -1,6 +1,11 @@
-{ pkgs ? import <nixpkgs> {} }:
-
 let
+  pkgs = import ((import <nixpkgs> {}).fetchFromGitHub {
+           owner = "NixOS";
+           repo = "nixpkgs-channels";
+           rev = "fa4167c0a13cbe0d97b9c88d91b86845a8c4e740";
+           sha256 = "1cgm0jmradi74rnvk9cy5var69zacb4sax2q9zvd24im3baajmpb";
+         }) {};
+
   haskellPackages = pkgs.haskell.packages.ghc801.override{
     overrides =
       let overrideAttrs = package: newAttrs: package.override (args: args // {
