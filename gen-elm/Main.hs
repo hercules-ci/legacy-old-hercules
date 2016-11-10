@@ -20,10 +20,15 @@ import Servant.Foreign
 import Servant.Foreign.Internal (Elem)
 
 import Hercules.API
+import Hercules.Database
 
 spec :: Spec
 spec = Spec ["Hercules"]
-            (defElmImports : generateElmForAPI (Proxy :: Proxy QueryAPI))
+            (defElmImports
+              : toElmTypeSource    (Proxy :: Proxy Project)
+              : toElmDecoderSource (Proxy :: Proxy Project)
+              : generateElmForAPI  (Proxy :: Proxy QueryAPI)
+            )
 
 instance forall lang ftype api auths a.
     ( HasForeign lang ftype api
