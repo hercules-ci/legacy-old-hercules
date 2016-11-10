@@ -26,11 +26,12 @@ let
           ) {};
 
           servant-elm = overrideAttrs super.servant-elm {
+            version = "2016-11-08";
             src = pkgs.fetchFromGitHub {
               owner = "mattjbray";
               repo = "servant-elm";
-              rev = "86e75bb93917b1c3266ec0e45d998f24ee0c53b5";
-              sha256 = "1sys9kfg3s9m73cghxiwb5nnd0ig0hlz0j55mzd4idwrsabb1sb6";
+              rev = "41793b2d8eddfb2dc35e174457702a43f1486bb0";
+              sha256 = "13qk6czck9rlby704fryp8mdryf13lllpkj1arj8bkmhbi5q41gd";
             };
             libraryHaskellDepends = with self; [
               base elm-export lens servant servant-foreign text interpolate mockery
@@ -92,11 +93,12 @@ let
           # new versions for servant-elm
           #
           elm-export = overrideAttrs super.elm-export {
+            version = "2016-11-08";
             src = pkgs.fetchFromGitHub {
-              owner = "expipiplus1";
+              owner = "krisajenkins";
               repo = "elm-export";
-              rev = "ac78f31b398f104878019228dfd9ed0eae5cb5c6";
-              sha256 = "0g9ah8m2k191a17vjpgmx3rkwldfh3pajrkbhrihqsnx724rfmnl";
+              rev = "d995e32482f9704efb5d7d08568b56c518f01bd0";
+              sha256 = "0zy3m1bkg2jfcsr7ac57xk53wgpf5f44zy5rxhm2nmmq309jv7g7";
             };
           };
         };
