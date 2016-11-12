@@ -50,6 +50,10 @@ let
             )
           ) {};
 
+          servant-pandoc = overrideAttrs super.servant-pandoc {
+            jailbreak = true;
+          };
+
           #
           # New versions for servant-auth
           #

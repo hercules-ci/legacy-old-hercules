@@ -86,6 +86,21 @@ executable gen-elm
                      , text
   default-language:    Haskell2010
 
+executable gen-docs
+  hs-source-dirs:      gen-docs
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , hercules
+                     , lens
+                     , pandoc
+                     , servant-auth-server
+                     , servant-docs
+                     , servant-pandoc
+                     , servant-server
+                     , text
+  default-language:    Haskell2010
+
 test-suite test
   type:                exitcode-stdio-1.0
   hs-source-dirs:      test
