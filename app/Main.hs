@@ -2,10 +2,13 @@
 
 module Main where
 
+import           Control.Exception
 import           Data.ByteString.Char8 (pack)
 import           Data.Foldable         (fold)
 import qualified Data.Text             as T
 import           Options.Applicative
+import           System.Exit
+import           System.IO             (hPutStrLn, stderr)
 import           System.IO.Strict      as Strict
 import           Text.Read             (readMaybe)
 
@@ -13,17 +16,34 @@ import Hercules.Config
 import Hercules.Lib
 
 main :: IO ()
-main = do
-  config <- execParser options >>= \case
-    Left f -> do
-      contents <- Strict.readFile f
-      case readMaybe contents of
-        Just config -> pure config
-        -- TODO: proper erorr handling
-        Nothing     -> error "error reading config"
-    Right c -> pure c
-  startApp config
+main = getConfig >>= startApp
 
+-- | Parse the command line options. If incorrect options are given exit with
+-- 'exitFailure'.
+getConfig :: IO Config
+getConfig = execParser options >>= \case
+  Left f -> do
+    let readErr = do
+          hPutStrLn stderr ("Unable to read config file: " ++ f)
+          exitFailure
+
+    let parseErr = do
+          hPutStrLn stderr ("Unable to parse config file: " ++ f)
+          exitFailure
+
+    contents <- maybe readErr pure =<< maybeReadFile f
+
+    maybe parseErr pure (readMaybe contents)
+
+  Right c -> pure c
+
+-- | Catch any 'IOException's and return Nothing, otherwise the file contents
+maybeReadFile :: FilePath -> IO (Maybe String)
+maybeReadFile f = catch (Just <$> Strict.readFile f) h
+  where h :: IOException -> IO (Maybe a)
+        h = pure . const Nothing
+
+-- | A parser for the hercules config or a filepath to load one from
 options :: ParserInfo (Either FilePath Config)
 options = info (helper <*> parser) description
   where
