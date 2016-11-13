@@ -12,7 +12,10 @@ import GHC.Generics
 import Hercules.Database
 import Servant.Elm
 
-data ProjectWithJobsets = ProjectWithJobsets Project [Jobset]
+data ProjectWithJobsets = ProjectWithJobsets
+  { projectWithJobsetsProject :: Project
+  , projectWithJobsetsJobsets :: [Jobset]
+  }
   deriving(Generic)
 
 instance ToJSON ProjectWithJobsets where
