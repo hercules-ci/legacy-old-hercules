@@ -46,6 +46,7 @@ server env = enter (Nat (runApp env)) api
                 :<|> loggedInPage
         queryApi = unprotected :<|> protected
         unprotected = getProjectNames
+                      :<|> getProjects
                       :<|> getProject
         protected = getUser
 
@@ -65,3 +66,6 @@ getProjectNames = runQueryWithConnection projectNameQuery
 
 getProject :: Text -> App (Maybe Project)
 getProject name = headMay <$> runQueryWithConnection (projectQuery name)
+
+getProjects :: App [Project]
+getProjects = runQueryWithConnection projectsQuery

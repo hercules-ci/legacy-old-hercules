@@ -8,6 +8,7 @@ database
 module Hercules.Query
   ( projectNameQuery
   , projectQuery
+  , projectsQuery
   ) where
 
 import Control.Arrow (returnA)
@@ -21,6 +22,12 @@ projectNameQuery :: Query (Column PGText)
 projectNameQuery = proc () -> do
   Project{..} <- queryTable projectTable -< ()
   returnA -< projectName
+
+-- | A query to get a list of all the projects
+projectsQuery :: Query ProjectReadColumns
+projectsQuery = proc () -> do
+  project@Project{..} <- queryTable projectTable -< ()
+  returnA -< project
 
 -- | A query to get all the projects with the specified name (There should be
 -- only one)

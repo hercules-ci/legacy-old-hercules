@@ -23,6 +23,7 @@ import Hercules.OAuth.User
 
 type Unprotected =
       "projectNames" :> Get '[JSON] [Text]
+ :<|> "project" :> Get '[JSON] [Project]
  :<|> "project" :> Capture "projectName" Text :> Get '[JSON] (Maybe Project)
 
 type Protected = "protected" :> Get '[JSON] Text
