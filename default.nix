@@ -71,11 +71,13 @@ let
             };
           };
           opaleye = overrideAttrs super.opaleye {
+            editedCabalFile = null;
+            revision = null;
             src = pkgs.fetchFromGitHub {
               owner = "tomjaguarpaw";
               repo = "haskell-opaleye";
-              rev = "91ac7d0001484f8ef14d3a4dd6e15d9929f43196";
-              sha256 = "09vsyv4gk3l43nrisa2rzx2y5w3wh09ln38r3y1dkmnkjmp4jynw";
+              rev = "c068ba9d5da49735ade354717aa12e4e6d32ef9c";
+              sha256 = "01xix0d3y1mcc291rdcsanby08964935nb8c8ahb33lsn4ch707h";
             };
           };
           countable-inflections = overrideAttrs super.countable-inflections {
