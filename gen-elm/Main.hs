@@ -20,13 +20,17 @@ import Servant.Foreign
 import Servant.Foreign.Internal (Elem)
 
 import Hercules.API
-import Hercules.Database
+import Hercules.Database.Extra
 
 spec :: Spec
 spec = Spec ["Hercules"]
             (defElmImports
               : toElmTypeSource    (Proxy :: Proxy Project)
               : toElmDecoderSource (Proxy :: Proxy Project)
+              : toElmTypeSource    (Proxy :: Proxy Jobset)
+              : toElmDecoderSource (Proxy :: Proxy Jobset)
+              : toElmTypeSource    (Proxy :: Proxy ProjectWithJobsets)
+              : toElmDecoderSource (Proxy :: Proxy ProjectWithJobsets)
               : generateElmForAPI  (Proxy :: Proxy QueryAPI)
             )
 

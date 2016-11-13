@@ -19,6 +19,7 @@ library
                        Hercules.API
                        Hercules.Config
                        Hercules.Database
+                       Hercules.Database.Extra
                        Hercules.OAuth
                        Hercules.OAuth.Authenticators
                        Hercules.OAuth.Authenticators.GitHub

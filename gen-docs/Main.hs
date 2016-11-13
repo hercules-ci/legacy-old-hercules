@@ -23,8 +23,8 @@ import Servant.Docs.Pandoc
 import Text.Pandoc
 import Text.Pandoc.Options (def)
 
-import qualified Hercules.API      as Hercules
-import           Hercules.Database (Project)
+import qualified Hercules.API            as Hercules
+import           Hercules.Database.Extra
 
 writeDocs :: API -> IO ()
 writeDocs api = writeFile "api.rst" (writeRST def (pandoc api))
@@ -33,6 +33,10 @@ main :: IO ()
 main = writeDocs (docs (Proxy :: Proxy Hercules.QueryAPI))
 
 instance ToSample Project where
+
+instance ToSample Jobset where
+
+instance ToSample ProjectWithJobsets where
 
 instance ToSample Text where
   toSamples _ = singleSample "some text"

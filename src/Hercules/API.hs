@@ -15,7 +15,7 @@ import Servant.Auth.Server
 import Servant.HTML.Blaze
 import Text.Blaze.Html5
 
-import Hercules.Database             (Project)
+import Hercules.Database.Extra       (Project, ProjectWithJobsets)
 import Hercules.OAuth.Authenticators (AuthenticatorName)
 import Hercules.OAuth.Types          (AuthClientState, AuthCode, AuthError,
                                       AuthStatePacked, FrontendURL)
@@ -25,6 +25,7 @@ type Unprotected =
       "projectNames" :> Get '[JSON] [Text]
  :<|> "project" :> Get '[JSON] [Project]
  :<|> "project" :> Capture "projectName" Text :> Get '[JSON] (Maybe Project)
+ :<|> "projectWithJobsets" :> Get '[JSON] [ProjectWithJobsets]
 
 type Protected = "protected" :> Get '[JSON] Text
 
