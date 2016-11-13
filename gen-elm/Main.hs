@@ -47,7 +47,7 @@ instance forall lang ftype api auths a.
     where
       req = subR{ _reqHeaders = HeaderArg arg : _reqHeaders subR }
       arg = Arg
-        { _argName = PathSegment "Authorization"
+        { _argName = PathSegment "authorization"
         , _argType = typeFor lang (Proxy :: Proxy ftype) (Proxy :: Proxy Text)
         }
 
