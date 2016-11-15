@@ -11,6 +11,7 @@ import Data.Foldable            (toList)
 import Data.Int
 import Data.List                (sortOn)
 import Data.Maybe               (catMaybes)
+import Data.Monoid ((<>))
 import Data.Text
 import Network.Wai
 import Network.Wai.Handler.Warp
@@ -36,6 +37,7 @@ startApp :: Config -> IO ()
 startApp config = do
   let authenticators = configAuthenticatorList config
   env <- newEnv config authenticators
+  print $ "Serving on http://" <> (configHostName config) <> ":" <> (pack $ show $ configPort config)
   run (configPort config) =<< app env
 
 app :: Env -> IO Application
