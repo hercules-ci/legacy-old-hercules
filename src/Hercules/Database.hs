@@ -1,4 +1,5 @@
 {-# LANGUAGE DeriveGeneric         #-}
+{-# LANGUAGE FlexibleContexts      #-}
 {-# LANGUAGE FlexibleInstances     #-}
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
@@ -6,13 +7,41 @@
 module Hercules.Database where
 
 import           Data.Aeson
-import qualified Data.Aeson                 as JSON
-import           Data.Profunctor.Product.TH (makeAdaptorAndInstance)
+import qualified Data.Aeson                      as JSON
+import           Data.Profunctor
+import           Data.Profunctor.Product
+import           Data.Profunctor.Product.Default
+import           Data.Profunctor.Product.TH      (makeAdaptorAndInstance)
 import           Data.Text
 import           GHC.Generics
 import           GHC.Int
-import           Opaleye
+import           Opaleye                         hiding (fromNullable)
 import           Servant.Elm
+
+-- | A newtype around @a -> Maybe b@ to facilitate conversions from the
+-- Nullable types.
+newtype ToMaybe a b = ToMaybe { unToMaybe :: a -> Maybe b }
+
+instance Profunctor ToMaybe where
+  dimap f g (ToMaybe h) = ToMaybe (fmap g . h . f)
+
+instance ProductProfunctor ToMaybe where
+  empty = ToMaybe pure
+  (ToMaybe f) ***! (ToMaybe g) = ToMaybe (\(x, y) -> (,) <$> f x <*> g y)
+
+-- | This instance makes sure that values which are required in the output are
+-- required in the input.
+instance Default ToMaybe (Maybe a) a where
+  def = ToMaybe id
+
+-- | This instance allows values which are optional in the output to be
+-- optional in the input.
+instance Default ToMaybe (Maybe a) (Maybe a) where
+  def = ToMaybe pure
+
+-- | Convert from any Nullable type by "sequencing" over all the fields.
+fromNullable :: Default ToMaybe a b => a -> Maybe b
+fromNullable = unToMaybe def
 
 ---- Types for table: aggregateconstituents ----
 
@@ -30,10 +59,10 @@ type AggregateconstituentWriteColumns = Aggregateconstituent' (Column PGInt4) (C
 
 type AggregateconstituentNullableColumns = Aggregateconstituent' (Column (Nullable PGInt4)) (Column (Nullable PGInt4))
 
-type AggregateconstituentMaybe = Aggregateconstituent' (Maybe Int32) (Maybe Int32)
+type AggregateconstituentNullable = Aggregateconstituent' (Maybe Int32) (Maybe Int32)
 
-sequenceAggregateconstituent :: AggregateconstituentMaybe -> Maybe Aggregateconstituent
-sequenceAggregateconstituent (Aggregateconstituent c1 c2) = pure Aggregateconstituent <*> c1 <*> c2
+fromNullableAggregateconstituent :: AggregateconstituentNullable -> Maybe Aggregateconstituent
+fromNullableAggregateconstituent = fromNullable
 
 $(makeAdaptorAndInstance "pAggregateconstituent" ''Aggregateconstituent')
 
@@ -70,10 +99,10 @@ type BuildinputWriteColumns = Buildinput' (Maybe (Column PGInt4)) (Maybe (Column
 
 type BuildinputNullableColumns = Buildinput' (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type BuildinputMaybe = Buildinput' (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
+type BuildinputNullable = Buildinput' (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceBuildinput :: BuildinputMaybe -> Maybe Buildinput
-sequenceBuildinput (Buildinput c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11) = pure Buildinput <*> c1 <*> pure c2 <*> c3 <*> c4 <*> pure c5 <*> pure c6 <*> pure c7 <*> c8 <*> pure c9 <*> pure c10 <*> pure c11
+fromNullableBuildinput :: BuildinputNullable -> Maybe Buildinput
+fromNullableBuildinput = fromNullable
 
 $(makeAdaptorAndInstance "pBuildinput" ''Buildinput')
 
@@ -116,10 +145,10 @@ type BuildmetricWriteColumns = Buildmetric' (Column PGInt4) (Column PGText) (May
 
 type BuildmetricNullableColumns = Buildmetric' (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGFloat8)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4))
 
-type BuildmetricMaybe = Buildmetric' (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Double) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32)
+type BuildmetricNullable = Buildmetric' (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Double) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32)
 
-sequenceBuildmetric :: BuildmetricMaybe -> Maybe Buildmetric
-sequenceBuildmetric (Buildmetric c1 c2 c3 c4 c5 c6 c7 c8) = pure Buildmetric <*> c1 <*> c2 <*> pure c3 <*> c4 <*> c5 <*> c6 <*> c7 <*> c8
+fromNullableBuildmetric :: BuildmetricNullable -> Maybe Buildmetric
+fromNullableBuildmetric = fromNullable
 
 $(makeAdaptorAndInstance "pBuildmetric" ''Buildmetric')
 
@@ -154,10 +183,10 @@ type BuildoutputWriteColumns = Buildoutput' (Column PGInt4) (Column PGText) (Col
 
 type BuildoutputNullableColumns = Buildoutput' (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type BuildoutputMaybe = Buildoutput' (Maybe Int32) (Maybe Text) (Maybe Text)
+type BuildoutputNullable = Buildoutput' (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceBuildoutput :: BuildoutputMaybe -> Maybe Buildoutput
-sequenceBuildoutput (Buildoutput c1 c2 c3) = pure Buildoutput <*> c1 <*> c2 <*> c3
+fromNullableBuildoutput :: BuildoutputNullable -> Maybe Buildoutput
+fromNullableBuildoutput = fromNullable
 
 $(makeAdaptorAndInstance "pBuildoutput" ''Buildoutput')
 
@@ -195,10 +224,10 @@ type BuildproductWriteColumns = Buildproduct' (Column PGInt4) (Column PGInt4) (C
 
 type BuildproductNullableColumns = Buildproduct' (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type BuildproductMaybe = Buildproduct' (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Int64) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
+type BuildproductNullable = Buildproduct' (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Int64) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
 
-sequenceBuildproduct :: BuildproductMaybe -> Maybe Buildproduct
-sequenceBuildproduct (Buildproduct c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11) = pure Buildproduct <*> c1 <*> c2 <*> c3 <*> c4 <*> pure c5 <*> pure c6 <*> pure c7 <*> pure c8 <*> c9 <*> pure c10 <*> pure c11
+fromNullableBuildproduct :: BuildproductNullable -> Maybe Buildproduct
+fromNullableBuildproduct = fromNullable
 
 $(makeAdaptorAndInstance "pBuildproduct" ''Buildproduct')
 
@@ -262,10 +291,10 @@ type BuildWriteColumns = Build' (Maybe (Column PGInt4)) (Column PGInt4) (Column 
 
 type BuildNullableColumns = Build' (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt8)) (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column (Nullable PGInt4))
 
-type BuildMaybe = Build' (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int64) (Maybe Int64) (Maybe Text) (Maybe Int32)
+type BuildNullable = Build' (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int64) (Maybe Int64) (Maybe Text) (Maybe Int32)
 
-sequenceBuild :: BuildMaybe -> Maybe Build
-sequenceBuild (Build c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 c17 c18 c19 c20 c21 c22 c23 c24 c25 c26 c27 c28 c29) = pure Build <*> c1 <*> c2 <*> c3 <*> c4 <*> c5 <*> c6 <*> pure c7 <*> pure c8 <*> c9 <*> c10 <*> pure c11 <*> pure c12 <*> pure c13 <*> pure c14 <*> pure c15 <*> c16 <*> pure c17 <*> pure c18 <*> pure c19 <*> c20 <*> c21 <*> pure c22 <*> pure c23 <*> pure c24 <*> pure c25 <*> pure c26 <*> pure c27 <*> pure c28 <*> c29
+fromNullableBuild :: BuildNullable -> Maybe Build
+fromNullableBuild = fromNullable
 
 $(makeAdaptorAndInstance "pBuild" ''Build')
 
@@ -322,10 +351,10 @@ type BuildstepoutputWriteColumns = Buildstepoutput' (Column PGInt4) (Column PGIn
 
 type BuildstepoutputNullableColumns = Buildstepoutput' (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type BuildstepoutputMaybe = Buildstepoutput' (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
+type BuildstepoutputNullable = Buildstepoutput' (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceBuildstepoutput :: BuildstepoutputMaybe -> Maybe Buildstepoutput
-sequenceBuildstepoutput (Buildstepoutput c1 c2 c3 c4) = pure Buildstepoutput <*> c1 <*> c2 <*> c3 <*> c4
+fromNullableBuildstepoutput :: BuildstepoutputNullable -> Maybe Buildstepoutput
+fromNullableBuildstepoutput = fromNullable
 
 $(makeAdaptorAndInstance "pBuildstepoutput" ''Buildstepoutput')
 
@@ -366,10 +395,10 @@ type BuildstepWriteColumns = Buildstep' (Column PGInt4) (Column PGInt4) (Column 
 
 type BuildstepNullableColumns = Buildstep' (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4))
 
-type BuildstepMaybe = Buildstep' (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32)
+type BuildstepNullable = Buildstep' (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32)
 
-sequenceBuildstep :: BuildstepMaybe -> Maybe Buildstep
-sequenceBuildstep (Buildstep c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13) = pure Buildstep <*> c1 <*> c2 <*> c3 <*> pure c4 <*> c5 <*> pure c6 <*> pure c7 <*> pure c8 <*> pure c9 <*> c10 <*> pure c11 <*> pure c12 <*> pure c13
+fromNullableBuildstep :: BuildstepNullable -> Maybe Buildstep
+fromNullableBuildstep = fromNullable
 
 $(makeAdaptorAndInstance "pBuildstep" ''Buildstep')
 
@@ -410,10 +439,10 @@ type CachedbazaarinputWriteColumns = Cachedbazaarinput' (Column PGText) (Column 
 
 type CachedbazaarinputNullableColumns = Cachedbazaarinput' (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type CachedbazaarinputMaybe = Cachedbazaarinput' (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
+type CachedbazaarinputNullable = Cachedbazaarinput' (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceCachedbazaarinput :: CachedbazaarinputMaybe -> Maybe Cachedbazaarinput
-sequenceCachedbazaarinput (Cachedbazaarinput c1 c2 c3 c4) = pure Cachedbazaarinput <*> c1 <*> c2 <*> c3 <*> c4
+fromNullableCachedbazaarinput :: CachedbazaarinputNullable -> Maybe Cachedbazaarinput
+fromNullableCachedbazaarinput = fromNullable
 
 $(makeAdaptorAndInstance "pCachedbazaarinput" ''Cachedbazaarinput')
 
@@ -447,10 +476,10 @@ type CachedcvsinputWriteColumns = Cachedcvsinput' (Column PGText) (Column PGText
 
 type CachedcvsinputNullableColumns = Cachedcvsinput' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type CachedcvsinputMaybe = Cachedcvsinput' (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
+type CachedcvsinputNullable = Cachedcvsinput' (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceCachedcvsinput :: CachedcvsinputMaybe -> Maybe Cachedcvsinput
-sequenceCachedcvsinput (Cachedcvsinput c1 c2 c3 c4 c5 c6) = pure Cachedcvsinput <*> c1 <*> c2 <*> c3 <*> c4 <*> c5 <*> c6
+fromNullableCachedcvsinput :: CachedcvsinputNullable -> Maybe Cachedcvsinput
+fromNullableCachedcvsinput = fromNullable
 
 $(makeAdaptorAndInstance "pCachedcvsinput" ''Cachedcvsinput')
 
@@ -485,10 +514,10 @@ type CacheddarcsinputWriteColumns = Cacheddarcsinput' (Column PGText) (Column PG
 
 type CacheddarcsinputNullableColumns = Cacheddarcsinput' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4))
 
-type CacheddarcsinputMaybe = Cacheddarcsinput' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32)
+type CacheddarcsinputNullable = Cacheddarcsinput' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32)
 
-sequenceCacheddarcsinput :: CacheddarcsinputMaybe -> Maybe Cacheddarcsinput
-sequenceCacheddarcsinput (Cacheddarcsinput c1 c2 c3 c4 c5) = pure Cacheddarcsinput <*> c1 <*> c2 <*> c3 <*> c4 <*> c5
+fromNullableCacheddarcsinput :: CacheddarcsinputNullable -> Maybe Cacheddarcsinput
+fromNullableCacheddarcsinput = fromNullable
 
 $(makeAdaptorAndInstance "pCacheddarcsinput" ''Cacheddarcsinput')
 
@@ -522,10 +551,10 @@ type CachedgitinputWriteColumns = Cachedgitinput' (Column PGText) (Column PGText
 
 type CachedgitinputNullableColumns = Cachedgitinput' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type CachedgitinputMaybe = Cachedgitinput' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
+type CachedgitinputNullable = Cachedgitinput' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
 
-sequenceCachedgitinput :: CachedgitinputMaybe -> Maybe Cachedgitinput
-sequenceCachedgitinput (Cachedgitinput c1 c2 c3 c4 c5) = pure Cachedgitinput <*> c1 <*> c2 <*> c3 <*> c4 <*> c5
+fromNullableCachedgitinput :: CachedgitinputNullable -> Maybe Cachedgitinput
+fromNullableCachedgitinput = fromNullable
 
 $(makeAdaptorAndInstance "pCachedgitinput" ''Cachedgitinput')
 
@@ -559,10 +588,10 @@ type CachedhginputWriteColumns = Cachedhginput' (Column PGText) (Column PGText) 
 
 type CachedhginputNullableColumns = Cachedhginput' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type CachedhginputMaybe = Cachedhginput' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
+type CachedhginputNullable = Cachedhginput' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
 
-sequenceCachedhginput :: CachedhginputMaybe -> Maybe Cachedhginput
-sequenceCachedhginput (Cachedhginput c1 c2 c3 c4 c5) = pure Cachedhginput <*> c1 <*> c2 <*> c3 <*> c4 <*> c5
+fromNullableCachedhginput :: CachedhginputNullable -> Maybe Cachedhginput
+fromNullableCachedhginput = fromNullable
 
 $(makeAdaptorAndInstance "pCachedhginput" ''Cachedhginput')
 
@@ -596,10 +625,10 @@ type CachedpathinputWriteColumns = Cachedpathinput' (Column PGText) (Column PGIn
 
 type CachedpathinputNullableColumns = Cachedpathinput' (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type CachedpathinputMaybe = Cachedpathinput' (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
+type CachedpathinputNullable = Cachedpathinput' (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceCachedpathinput :: CachedpathinputMaybe -> Maybe Cachedpathinput
-sequenceCachedpathinput (Cachedpathinput c1 c2 c3 c4 c5) = pure Cachedpathinput <*> c1 <*> c2 <*> c3 <*> c4 <*> c5
+fromNullableCachedpathinput :: CachedpathinputNullable -> Maybe Cachedpathinput
+fromNullableCachedpathinput = fromNullable
 
 $(makeAdaptorAndInstance "pCachedpathinput" ''Cachedpathinput')
 
@@ -632,10 +661,10 @@ type CachedsubversioninputWriteColumns = Cachedsubversioninput' (Column PGText) 
 
 type CachedsubversioninputNullableColumns = Cachedsubversioninput' (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type CachedsubversioninputMaybe = Cachedsubversioninput' (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
+type CachedsubversioninputNullable = Cachedsubversioninput' (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceCachedsubversioninput :: CachedsubversioninputMaybe -> Maybe Cachedsubversioninput
-sequenceCachedsubversioninput (Cachedsubversioninput c1 c2 c3 c4) = pure Cachedsubversioninput <*> c1 <*> c2 <*> c3 <*> c4
+fromNullableCachedsubversioninput :: CachedsubversioninputNullable -> Maybe Cachedsubversioninput
+fromNullableCachedsubversioninput = fromNullable
 
 $(makeAdaptorAndInstance "pCachedsubversioninput" ''Cachedsubversioninput')
 
@@ -664,10 +693,10 @@ type FailedpathWriteColumns = Failedpath' (Column PGText)
 
 type FailedpathNullableColumns = Failedpath' (Column (Nullable PGText))
 
-type FailedpathMaybe = Failedpath' (Maybe Text)
+type FailedpathNullable = Failedpath' (Maybe Text)
 
-sequenceFailedpath :: FailedpathMaybe -> Maybe Failedpath
-sequenceFailedpath (Failedpath c1) = pure Failedpath <*> c1
+fromNullableFailedpath :: FailedpathNullable -> Maybe Failedpath
+fromNullableFailedpath = fromNullable
 
 $(makeAdaptorAndInstance "pFailedpath" ''Failedpath')
 
@@ -695,10 +724,10 @@ type JobWriteColumns = Job' (Column PGText) (Column PGText) (Column PGText)
 
 type JobNullableColumns = Job' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type JobMaybe = Job' (Maybe Text) (Maybe Text) (Maybe Text)
+type JobNullable = Job' (Maybe Text) (Maybe Text) (Maybe Text)
 
-sequenceJob :: JobMaybe -> Maybe Job
-sequenceJob (Job c1 c2 c3) = pure Job <*> c1 <*> c2 <*> c3
+fromNullableJob :: JobNullable -> Maybe Job
+fromNullableJob = fromNullable
 
 $(makeAdaptorAndInstance "pJob" ''Job')
 
@@ -735,10 +764,10 @@ type JobsetevalinputWriteColumns = Jobsetevalinput' (Column PGInt4) (Column PGTe
 
 type JobsetevalinputNullableColumns = Jobsetevalinput' (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type JobsetevalinputMaybe = Jobsetevalinput' (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
+type JobsetevalinputNullable = Jobsetevalinput' (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceJobsetevalinput :: JobsetevalinputMaybe -> Maybe Jobsetevalinput
-sequenceJobsetevalinput (Jobsetevalinput c1 c2 c3 c4 c5 c6 c7 c8 c9 c10) = pure Jobsetevalinput <*> c1 <*> c2 <*> c3 <*> c4 <*> pure c5 <*> pure c6 <*> pure c7 <*> pure c8 <*> pure c9 <*> pure c10
+fromNullableJobsetevalinput :: JobsetevalinputNullable -> Maybe Jobsetevalinput
+fromNullableJobsetevalinput = fromNullable
 
 $(makeAdaptorAndInstance "pJobsetevalinput" ''Jobsetevalinput')
 
@@ -775,10 +804,10 @@ type JobsetevalmemberWriteColumns = Jobsetevalmember' (Column PGInt4) (Column PG
 
 type JobsetevalmemberNullableColumns = Jobsetevalmember' (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4))
 
-type JobsetevalmemberMaybe = Jobsetevalmember' (Maybe Int32) (Maybe Int32) (Maybe Int32)
+type JobsetevalmemberNullable = Jobsetevalmember' (Maybe Int32) (Maybe Int32) (Maybe Int32)
 
-sequenceJobsetevalmember :: JobsetevalmemberMaybe -> Maybe Jobsetevalmember
-sequenceJobsetevalmember (Jobsetevalmember c1 c2 c3) = pure Jobsetevalmember <*> c1 <*> c2 <*> c3
+fromNullableJobsetevalmember :: JobsetevalmemberNullable -> Maybe Jobsetevalmember
+fromNullableJobsetevalmember = fromNullable
 
 $(makeAdaptorAndInstance "pJobsetevalmember" ''Jobsetevalmember')
 
@@ -815,10 +844,10 @@ type JobsetevalWriteColumns = Jobseteval' (Maybe (Column PGInt4)) (Column PGText
 
 type JobsetevalNullableColumns = Jobseteval' (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4))
 
-type JobsetevalMaybe = Jobseteval' (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32)
+type JobsetevalNullable = Jobseteval' (Maybe Int32) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32)
 
-sequenceJobseteval :: JobsetevalMaybe -> Maybe Jobseteval
-sequenceJobseteval (Jobseteval c1 c2 c3 c4 c5 c6 c7 c8 c9 c10) = pure Jobseteval <*> c1 <*> c2 <*> c3 <*> c4 <*> c5 <*> c6 <*> c7 <*> c8 <*> pure c9 <*> pure c10
+fromNullableJobseteval :: JobsetevalNullable -> Maybe Jobseteval
+fromNullableJobseteval = fromNullable
 
 $(makeAdaptorAndInstance "pJobseteval" ''Jobseteval')
 
@@ -858,10 +887,10 @@ type JobsetinputaltWriteColumns = Jobsetinputalt' (Column PGText) (Column PGText
 
 type JobsetinputaltNullableColumns = Jobsetinputalt' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type JobsetinputaltMaybe = Jobsetinputalt' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
+type JobsetinputaltNullable = Jobsetinputalt' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceJobsetinputalt :: JobsetinputaltMaybe -> Maybe Jobsetinputalt
-sequenceJobsetinputalt (Jobsetinputalt c1 c2 c3 c4 c5 c6) = pure Jobsetinputalt <*> c1 <*> c2 <*> c3 <*> c4 <*> pure c5 <*> pure c6
+fromNullableJobsetinputalt :: JobsetinputaltNullable -> Maybe Jobsetinputalt
+fromNullableJobsetinputalt = fromNullable
 
 $(makeAdaptorAndInstance "pJobsetinputalt" ''Jobsetinputalt')
 
@@ -896,10 +925,10 @@ type JobsetinputWriteColumns = Jobsetinput' (Column PGText) (Column PGText) (Col
 
 type JobsetinputNullableColumns = Jobsetinput' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4))
 
-type JobsetinputMaybe = Jobsetinput' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32)
+type JobsetinputNullable = Jobsetinput' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32)
 
-sequenceJobsetinput :: JobsetinputMaybe -> Maybe Jobsetinput
-sequenceJobsetinput (Jobsetinput c1 c2 c3 c4 c5) = pure Jobsetinput <*> c1 <*> c2 <*> c3 <*> c4 <*> c5
+fromNullableJobsetinput :: JobsetinputNullable -> Maybe Jobsetinput
+fromNullableJobsetinput = fromNullable
 
 $(makeAdaptorAndInstance "pJobsetinput" ''Jobsetinput')
 
@@ -931,10 +960,10 @@ type JobsetrenameWriteColumns = Jobsetrename' (Column PGText) (Column PGText) (C
 
 type JobsetrenameNullableColumns = Jobsetrename' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type JobsetrenameMaybe = Jobsetrename' (Maybe Text) (Maybe Text) (Maybe Text)
+type JobsetrenameNullable = Jobsetrename' (Maybe Text) (Maybe Text) (Maybe Text)
 
-sequenceJobsetrename :: JobsetrenameMaybe -> Maybe Jobsetrename
-sequenceJobsetrename (Jobsetrename c1 c2 c3) = pure Jobsetrename <*> c1 <*> c2 <*> c3
+fromNullableJobsetrename :: JobsetrenameNullable -> Maybe Jobsetrename
+fromNullableJobsetrename = fromNullable
 
 $(makeAdaptorAndInstance "pJobsetrename" ''Jobsetrename')
 
@@ -982,10 +1011,10 @@ type JobsetWriteColumns = Jobset' (Column PGText) (Column PGText) (Maybe (Column
 
 type JobsetNullableColumns = Jobset' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText))
 
-type JobsetMaybe = Jobset' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text)
+type JobsetNullable = Jobset' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Int32) (Maybe Text)
 
-sequenceJobset :: JobsetMaybe -> Maybe Jobset
-sequenceJobset (Jobset c1 c2 c3 c4 c5 c6 c7 c8 c9 c10 c11 c12 c13 c14 c15 c16 c17) = pure Jobset <*> c1 <*> c2 <*> pure c3 <*> c4 <*> c5 <*> pure c6 <*> pure c7 <*> pure c8 <*> pure c9 <*> c10 <*> c11 <*> c12 <*> c13 <*> c14 <*> c15 <*> c16 <*> pure c17
+fromNullableJobset :: JobsetNullable -> Maybe Jobset
+fromNullableJobset = fromNullable
 
 $(makeAdaptorAndInstance "pJobset" ''Jobset')
 
@@ -1030,10 +1059,10 @@ type NewsitemWriteColumns = Newsitem' (Maybe (Column PGInt4)) (Column PGText) (C
 
 type NewsitemNullableColumns = Newsitem' (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText))
 
-type NewsitemMaybe = Newsitem' (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Text)
+type NewsitemNullable = Newsitem' (Maybe Int32) (Maybe Text) (Maybe Int32) (Maybe Text)
 
-sequenceNewsitem :: NewsitemMaybe -> Maybe Newsitem
-sequenceNewsitem (Newsitem c1 c2 c3 c4) = pure Newsitem <*> c1 <*> c2 <*> c3 <*> c4
+fromNullableNewsitem :: NewsitemNullable -> Maybe Newsitem
+fromNullableNewsitem = fromNullable
 
 $(makeAdaptorAndInstance "pNewsitem" ''Newsitem')
 
@@ -1063,10 +1092,10 @@ type NrbuildWriteColumns = Nrbuild' (Column PGText) (Column PGInt4)
 
 type NrbuildNullableColumns = Nrbuild' (Column (Nullable PGText)) (Column (Nullable PGInt4))
 
-type NrbuildMaybe = Nrbuild' (Maybe Text) (Maybe Int32)
+type NrbuildNullable = Nrbuild' (Maybe Text) (Maybe Int32)
 
-sequenceNrbuild :: NrbuildMaybe -> Maybe Nrbuild
-sequenceNrbuild (Nrbuild c1 c2) = pure Nrbuild <*> c1 <*> c2
+fromNullableNrbuild :: NrbuildNullable -> Maybe Nrbuild
+fromNullableNrbuild = fromNullable
 
 $(makeAdaptorAndInstance "pNrbuild" ''Nrbuild')
 
@@ -1094,10 +1123,10 @@ type ProjectmemberWriteColumns = Projectmember' (Column PGText) (Column PGText)
 
 type ProjectmemberNullableColumns = Projectmember' (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type ProjectmemberMaybe = Projectmember' (Maybe Text) (Maybe Text)
+type ProjectmemberNullable = Projectmember' (Maybe Text) (Maybe Text)
 
-sequenceProjectmember :: ProjectmemberMaybe -> Maybe Projectmember
-sequenceProjectmember (Projectmember c1 c2) = pure Projectmember <*> c1 <*> c2
+fromNullableProjectmember :: ProjectmemberNullable -> Maybe Projectmember
+fromNullableProjectmember = fromNullable
 
 $(makeAdaptorAndInstance "pProjectmember" ''Projectmember')
 
@@ -1134,10 +1163,10 @@ type ProjectWriteColumns = Project' (Column PGText) (Column PGText) (Maybe (Colu
 
 type ProjectNullableColumns = Project' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGInt4)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type ProjectMaybe = Project' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
+type ProjectNullable = Project' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Int32) (Maybe Text) (Maybe Text)
 
-sequenceProject :: ProjectMaybe -> Maybe Project
-sequenceProject (Project c1 c2 c3 c4 c5 c6 c7) = pure Project <*> c1 <*> c2 <*> pure c3 <*> c4 <*> c5 <*> c6 <*> pure c7
+fromNullableProject :: ProjectNullable -> Maybe Project
+fromNullableProject = fromNullable
 
 $(makeAdaptorAndInstance "pProject" ''Project')
 
@@ -1172,10 +1201,10 @@ type ReleasememberWriteColumns = Releasemember' (Column PGText) (Column PGText) 
 
 type ReleasememberNullableColumns = Releasemember' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText))
 
-type ReleasememberMaybe = Releasemember' (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text)
+type ReleasememberNullable = Releasemember' (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text)
 
-sequenceReleasemember :: ReleasememberMaybe -> Maybe Releasemember
-sequenceReleasemember (Releasemember c1 c2 c3 c4) = pure Releasemember <*> c1 <*> c2 <*> c3 <*> pure c4
+fromNullableReleasemember :: ReleasememberNullable -> Maybe Releasemember
+fromNullableReleasemember = fromNullable
 
 $(makeAdaptorAndInstance "pReleasemember" ''Releasemember')
 
@@ -1207,10 +1236,10 @@ type ReleaseWriteColumns = Release' (Column PGText) (Column PGText) (Column PGIn
 
 type ReleaseNullableColumns = Release' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText))
 
-type ReleaseMaybe = Release' (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text)
+type ReleaseNullable = Release' (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text)
 
-sequenceRelease :: ReleaseMaybe -> Maybe Release
-sequenceRelease (Release c1 c2 c3 c4) = pure Release <*> c1 <*> c2 <*> c3 <*> pure c4
+fromNullableRelease :: ReleaseNullable -> Maybe Release
+fromNullableRelease = fromNullable
 
 $(makeAdaptorAndInstance "pRelease" ''Release')
 
@@ -1239,10 +1268,10 @@ type SchemaversionWriteColumns = Schemaversion' (Column PGInt4)
 
 type SchemaversionNullableColumns = Schemaversion' (Column (Nullable PGInt4))
 
-type SchemaversionMaybe = Schemaversion' (Maybe Int32)
+type SchemaversionNullable = Schemaversion' (Maybe Int32)
 
-sequenceSchemaversion :: SchemaversionMaybe -> Maybe Schemaversion
-sequenceSchemaversion (Schemaversion c1) = pure Schemaversion <*> c1
+fromNullableSchemaversion :: SchemaversionNullable -> Maybe Schemaversion
+fromNullableSchemaversion = fromNullable
 
 $(makeAdaptorAndInstance "pSchemaversion" ''Schemaversion')
 
@@ -1271,10 +1300,10 @@ type StarredjobWriteColumns = Starredjob' (Column PGText) (Column PGText) (Colum
 
 type StarredjobNullableColumns = Starredjob' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type StarredjobMaybe = Starredjob' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
+type StarredjobNullable = Starredjob' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text)
 
-sequenceStarredjob :: StarredjobMaybe -> Maybe Starredjob
-sequenceStarredjob (Starredjob c1 c2 c3 c4) = pure Starredjob <*> c1 <*> c2 <*> c3 <*> c4
+fromNullableStarredjob :: StarredjobNullable -> Maybe Starredjob
+fromNullableStarredjob = fromNullable
 
 $(makeAdaptorAndInstance "pStarredjob" ''Starredjob')
 
@@ -1304,10 +1333,10 @@ type SystemstatusWriteColumns = Systemstatus' (Column PGText) (Column PGJson)
 
 type SystemstatusNullableColumns = Systemstatus' (Column (Nullable PGText)) (Column (Nullable PGJson))
 
-type SystemstatusMaybe = Systemstatus' (Maybe Text) (Maybe JSON.Value)
+type SystemstatusNullable = Systemstatus' (Maybe Text) (Maybe JSON.Value)
 
-sequenceSystemstatus :: SystemstatusMaybe -> Maybe Systemstatus
-sequenceSystemstatus (Systemstatus c1 c2) = pure Systemstatus <*> c1 <*> c2
+fromNullableSystemstatus :: SystemstatusNullable -> Maybe Systemstatus
+fromNullableSystemstatus = fromNullable
 
 $(makeAdaptorAndInstance "pSystemstatus" ''Systemstatus')
 
@@ -1335,10 +1364,10 @@ type SystemtypeWriteColumns = Systemtype' (Column PGText) (Column PGInt4)
 
 type SystemtypeNullableColumns = Systemtype' (Column (Nullable PGText)) (Column (Nullable PGInt4))
 
-type SystemtypeMaybe = Systemtype' (Maybe Text) (Maybe Int32)
+type SystemtypeNullable = Systemtype' (Maybe Text) (Maybe Int32)
 
-sequenceSystemtype :: SystemtypeMaybe -> Maybe Systemtype
-sequenceSystemtype (Systemtype c1 c2) = pure Systemtype <*> c1 <*> c2
+fromNullableSystemtype :: SystemtypeNullable -> Maybe Systemtype
+fromNullableSystemtype = fromNullable
 
 $(makeAdaptorAndInstance "pSystemtype" ''Systemtype')
 
@@ -1366,10 +1395,10 @@ type UrirevmapperWriteColumns = Urirevmapper' (Column PGText) (Column PGText)
 
 type UrirevmapperNullableColumns = Urirevmapper' (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type UrirevmapperMaybe = Urirevmapper' (Maybe Text) (Maybe Text)
+type UrirevmapperNullable = Urirevmapper' (Maybe Text) (Maybe Text)
 
-sequenceUrirevmapper :: UrirevmapperMaybe -> Maybe Urirevmapper
-sequenceUrirevmapper (Urirevmapper c1 c2) = pure Urirevmapper <*> c1 <*> c2
+fromNullableUrirevmapper :: UrirevmapperNullable -> Maybe Urirevmapper
+fromNullableUrirevmapper = fromNullable
 
 $(makeAdaptorAndInstance "pUrirevmapper" ''Urirevmapper')
 
@@ -1397,10 +1426,10 @@ type UserroleWriteColumns = Userrole' (Column PGText) (Column PGText)
 
 type UserroleNullableColumns = Userrole' (Column (Nullable PGText)) (Column (Nullable PGText))
 
-type UserroleMaybe = Userrole' (Maybe Text) (Maybe Text)
+type UserroleNullable = Userrole' (Maybe Text) (Maybe Text)
 
-sequenceUserrole :: UserroleMaybe -> Maybe Userrole
-sequenceUserrole (Userrole c1 c2) = pure Userrole <*> c1 <*> c2
+fromNullableUserrole :: UserroleNullable -> Maybe Userrole
+fromNullableUserrole = fromNullable
 
 $(makeAdaptorAndInstance "pUserrole" ''Userrole')
 
@@ -1432,10 +1461,10 @@ type UserWriteColumns = User' (Column PGText) (Maybe (Column (Nullable PGText)))
 
 type UserNullableColumns = User' (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGInt4)) (Column (Nullable PGText))
 
-type UserMaybe = User' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text)
+type UserNullable = User' (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe Int32) (Maybe Text)
 
-sequenceUser :: UserMaybe -> Maybe User
-sequenceUser (User c1 c2 c3 c4 c5 c6) = pure User <*> c1 <*> pure c2 <*> c3 <*> c4 <*> c5 <*> c6
+fromNullableUser :: UserNullable -> Maybe User
+fromNullableUser = fromNullable
 
 $(makeAdaptorAndInstance "pUser" ''User')
 

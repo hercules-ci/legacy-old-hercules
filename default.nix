@@ -44,8 +44,8 @@ let
               pkgs.fetchFromGitHub{
                 owner = "expipiplus1";
                 repo = "opaleye-gen";
-                rev = "dc62fa742c0e90f9b3a59bbd6c7d1533e74f5833";
-                sha256 = "1iiwzbmn708yblnagvym6cjsvnrr2gz5r0p29b64viknqcjgc0di";
+                rev = "b9c069ee00f6f6940663407a69d370566609babd";
+                sha256 = "1diwpl0k49g3dfjnf4mib1z19pfccflpak1hzw1b1vs87pg2m9rr";
               }
             )
           ) {};

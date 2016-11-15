@@ -1,6 +1,4 @@
-{-# LANGUAGE LambdaCase        #-}
-{-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TypeOperators     #-}
+{-# LANGUAGE LambdaCase #-}
 
 module Hercules.Lib
   ( startApp
@@ -23,9 +21,9 @@ import qualified Data.List.NonEmpty as NE
 
 import Hercules.API
 import Hercules.Config
-import Hercules.Database.Extra       (JobsetMaybe, Project,
-                                      ProjectWithJobsets (..), projectName,
-                                      sequenceJobset)
+import Hercules.Database.Extra       (JobsetNullable, Project,
+                                      ProjectWithJobsets (..),
+                                      fromNullableJobset, projectName)
 import Hercules.OAuth
 import Hercules.OAuth.Authenticators
 import Hercules.OAuth.User
@@ -85,11 +83,11 @@ getProjectsWithJobsets :: App [ProjectWithJobsets]
 getProjectsWithJobsets =
   fmap (uncurry makeProjectWithJobsets . second toList)
   . groupSortOn projectName
-  <$> (runQueryWithConnection projectsWithJobsetsQuery :: App [(Project, JobsetMaybe)])
+  <$> (runQueryWithConnection projectsWithJobsetsQuery :: App [(Project, JobsetNullable)])
   where
-    makeProjectWithJobsets :: Project -> [JobsetMaybe] -> ProjectWithJobsets
+    makeProjectWithJobsets :: Project -> [JobsetNullable] -> ProjectWithJobsets
     makeProjectWithJobsets p jms =
-      let js = catMaybes (sequenceJobset <$> jms)
+      let js = catMaybes (fromNullableJobset <$> jms)
       in ProjectWithJobsets p js
 
 groupSortOn :: Ord k => (a -> k) -> [(a, v)] -> [(a, NE.NonEmpty v)]
