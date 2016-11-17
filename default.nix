@@ -42,10 +42,10 @@ let
           opaleye-gen = self.callPackage (
             haskellPackageGen { doFilter = false; } (
               pkgs.fetchFromGitHub{
-                owner = "expipiplus1";
+                owner = "folsen";
                 repo = "opaleye-gen";
-                rev = "b9c069ee00f6f6940663407a69d370566609babd";
-                sha256 = "1diwpl0k49g3dfjnf4mib1z19pfccflpak1hzw1b1vs87pg2m9rr";
+                rev = "14938df0081187539f23f8547fb1b7762e286ac3";
+                sha256 = "1xapgyhkn71m0arb06rv5b1cncz5gv9lybi3q4yavs8zh4jbkbn7";
               }
             )
           ) {};
