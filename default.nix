@@ -125,7 +125,7 @@ let
 
   drv = haskellPackages.callPackage f {};
 
-  extraEnvPackages = with haskellPackages; [opaleye-gen];
+  extraEnvPackages = with pkgs; with haskellPackages; [ opaleye-gen postgresql ];
 
   envWithExtras = pkgs.lib.overrideDerivation drv.env (attrs: {
     buildInputs = attrs.buildInputs ++ extraEnvPackages;
