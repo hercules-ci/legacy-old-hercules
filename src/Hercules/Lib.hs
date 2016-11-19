@@ -1,4 +1,5 @@
-{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE LambdaCase        #-}
+{-# LANGUAGE OverloadedStrings #-}
 
 module Hercules.Lib
   ( startApp
@@ -8,7 +9,7 @@ import Data.Bifunctor           (second)
 import Data.Foldable            (toList)
 import Data.List                (sortOn)
 import Data.Maybe               (catMaybes)
-import Data.Monoid ((<>))
+import Data.Monoid              ((<>))
 import Data.Text
 import Network.Wai
 import Network.Wai.Handler.Warp
@@ -18,6 +19,7 @@ import Servant.Auth.Server      (AuthResult (..), defaultCookieSettings)
 import Servant.Mandatory
 
 import qualified Data.List.NonEmpty as NE
+import qualified Data.Text.IO       as T
 
 import Hercules.API
 import Hercules.Config
@@ -35,7 +37,8 @@ startApp :: Config -> IO ()
 startApp config = do
   let authenticators = configAuthenticatorList config
   env <- newEnv config authenticators
-  print $ "Serving on http://" <> (configHostName config) <> ":" <> (pack $ show $ configPort config)
+  T.putStrLn $ "Serving on http://" <> configHostName config
+               <> ":" <> (pack . show $ configPort config)
   run (configPort config) =<< app env
 
 app :: Env -> IO Application
