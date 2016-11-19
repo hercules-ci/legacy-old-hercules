@@ -7,8 +7,8 @@ A program to query a hydra database.
 You'll need Nix installed and [Hydra database loaded into Postgresql]
 (https://github.com/peti/hydra-tutorial) for hydra user.
 
-   $ nix-build
-   $ ./result/bin/hercules -c hercules.conf.sample
+    $ nix-build
+    $ ./result/bin/hercules -c hercules.conf.sample
 
 ## API
 
