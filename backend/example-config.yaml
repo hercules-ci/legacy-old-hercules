@@ -1,4 +1,5 @@
 port: 8080
 hostname: "localhost"
+accessLogLevel: Disabled
 connectionString: "postgresql://hydra@/hydra"
 

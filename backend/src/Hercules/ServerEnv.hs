@@ -15,6 +15,7 @@ module Hercules.ServerEnv
   ) where
 
 import Control.Monad.Except.Extra
+import Control.Monad.Log
 import Control.Monad.Reader
 import Crypto.JOSE.Error
 import Data.ByteString.Lazy            (toStrict)
@@ -22,6 +23,7 @@ import Data.List                       (find)
 import Data.Pool
 import Data.Profunctor.Product.Default (Default)
 import Data.Text.Encoding              (encodeUtf8)
+import Data.Time.Format
 import Database.PostgreSQL.Simple      (Connection, close, connectPostgreSQL)
 import Network.HTTP.Client             as HTTP
 import Network.HTTP.Client.TLS
@@ -31,7 +33,7 @@ import Servant.Auth.Server             (JWTSettings, defaultJWTSettings,
                                         generateKey, makeJWT)
 
 import Hercules.Config
--- import Hercules.OAuth.Authenticators
+import Hercules.Log
 import Hercules.OAuth.Types (AuthenticatorName, OAuth2Authenticator,
                              PackedJWT (..), authenticatorName)
 import Hercules.OAuth.User
@@ -45,14 +47,15 @@ data Env = Env { envConnectionPool :: Pool Connection
                }
 
 newtype App a = App
-  { unApp :: ReaderT Env (ExceptT ServantErr IO) a
+  { unApp :: ReaderT Env (ExceptT ServantErr (LogM (WithSeverity LogMessage) IO)) a
   }
   deriving ( Functor
            , Applicative
            , Monad
-           , MonadReader Env
            , MonadError ServantErr
            , MonadIO
+           , MonadLog (WithSeverity LogMessage)
+           , MonadReader Env
            )
 
 -- | Perform an action with a PostgreSQL connection and return the result
@@ -81,7 +84,15 @@ runQueryWithConnection
 runQueryWithConnection q = withConnection (\c -> runQuery c q)
 
 runApp :: Env -> App a -> ExceptT ServantErr IO a
-runApp env = flip runReaderT env . unApp
+runApp env = mapExceptT runLog
+           . flip runReaderT env
+           . unApp
+  where
+    runLog :: LogM (WithSeverity LogMessage) IO a -> IO a
+    runLog = (`runLoggingT` printMessage) . mapLogMessageM timestamp
+    printMessage :: WithTimestamp (WithSeverity LogMessage) -> IO ()
+    printMessage = print . renderWithTimestamp renderTime (renderWithSeverity render)
+    renderTime = formatTime defaultTimeLocale "%b %_d %H:%M:%S"
 
 newEnv :: MonadIO m => Config -> [OAuth2Authenticator App] -> m Env
 newEnv Config{..} authenticators = liftIO $ do

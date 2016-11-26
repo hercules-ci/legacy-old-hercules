@@ -27,6 +27,7 @@ library
                        Hercules.OAuth.Types
                        Hercules.OAuth.User
                        Hercules.Query
+                       Hercules.Log
                        Hercules.ServerEnv
                        Hercules.Static
                        Control.Monad.Except.Extra
@@ -43,6 +44,7 @@ library
                      , http-client-tls
                      , interpolatedstring-perl6
                      , jose
+                     , logging-effect
                      , markdown
                      , monad-control
                      , mtl
@@ -58,8 +60,11 @@ library
                      , servant-elm
                      , servant-server
                      , text
+                     , time
                      , wai
+                     , wai-extra
                      , warp
+                     , wl-pprint-text
   default-language:    Haskell2010
   ghc-options:         -Wall
 
