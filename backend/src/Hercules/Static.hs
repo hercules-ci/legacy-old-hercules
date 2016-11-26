@@ -35,10 +35,12 @@ welcomePage =
   in pure $ markdown defaultMarkdownSettings [qc|
 # Login Page
 
-Logging in with
+## Parameters
 
 - state: `{stateString}`
 - frontendURL: `{frontendURL}`
+
+## links:
 
 - [google]({uriGoogle})
 - [github]({uriGitHub})

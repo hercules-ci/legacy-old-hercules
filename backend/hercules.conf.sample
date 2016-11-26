@@ -1,6 +1,7 @@
 Config 
   { configPort = 8080
   , configHostName = "localhost"
+  , configAccessLogLevel = Disabled
   , configConnectionString = "postgresql://hydra@/hydra"
   , configGoogleAuthInfo = Nothing
   , configGitHubAuthInfo = Nothing

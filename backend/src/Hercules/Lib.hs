@@ -5,17 +5,20 @@ module Hercules.Lib
   ( startApp
   ) where
 
-import Data.Bifunctor           (second)
-import Data.Foldable            (toList)
-import Data.List                (sortOn)
-import Data.Maybe               (catMaybes)
-import Data.Monoid              ((<>))
+import Control.Monad.Log
+import Data.Bifunctor                       (second)
+import Data.Foldable                        (toList)
+import Data.List                            (sortOn)
+import Data.Maybe                           (catMaybes)
+import Data.Monoid                          ((<>))
 import Data.Text
 import Network.Wai
 import Network.Wai.Handler.Warp
-import Safe                     (headMay)
+import Network.Wai.Middleware.RequestLogger
+import Safe                                 (headMay)
 import Servant
-import Servant.Auth.Server      (AuthResult (..), defaultCookieSettings)
+import Servant.Auth.Server                  (AuthResult (..),
+                                             defaultCookieSettings)
 import Servant.Mandatory
 
 import qualified Data.List.NonEmpty as NE
@@ -36,10 +39,18 @@ import Hercules.Static
 startApp :: Config -> IO ()
 startApp config = do
   let authenticators = configAuthenticatorList config
+      port = configPort config
+      logging = loggingMiddleware config
   env <- newEnv config authenticators
   T.putStrLn $ "Serving on http://" <> configHostName config
-               <> ":" <> (pack . show $ configPort config)
-  run (configPort config) =<< app env
+               <> ":" <> (pack . show $ port)
+  run port . logging =<< app env
+
+loggingMiddleware :: Config -> Middleware
+loggingMiddleware config = case configAccessLogLevel config of
+  Disabled    -> id
+  Enabled     -> logStdout
+  Development -> logStdoutDev
 
 app :: Env -> IO Application
 app env = do
@@ -71,7 +82,9 @@ server env = enter (Nat (runApp env)) api
 getUser :: AuthResult User -> App Text
 getUser = \case
   (Authenticated (User (Email email))) -> pure email
-  _                                    -> throwError err401
+  _                                    -> do
+    logNotice "Failed user authentication attempt"
+    throwError err401
 
 getProjectNames :: App [Text]
 getProjectNames = runQueryWithConnection projectNameQuery

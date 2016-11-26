@@ -5,6 +5,7 @@ module Hercules.Config
   , ConnectInfo(..)
   , AuthClientInfo(..)
   , HostName
+  , AccessLogLevel(..)
   ) where
 
 import Data.ByteString
@@ -18,9 +19,13 @@ type HostName = Text
 
 data Config = Config { configPort             :: Port
                      , configHostName         :: HostName
+                     , configAccessLogLevel   :: AccessLogLevel
                      , configConnectionString :: ByteString
                      , configGoogleAuthInfo   :: Maybe AuthClientInfo
                      , configGitHubAuthInfo   :: Maybe AuthClientInfo
                      }
   deriving(Read, Show)
 
+-- | Access logging level
+data AccessLogLevel = Disabled | Enabled | Development
+  deriving(Read, Show)

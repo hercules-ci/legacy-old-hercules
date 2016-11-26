@@ -69,6 +69,15 @@ options = info (helper <*> parser) description
                                       ]
                                 )
           )
+      <*> option auto (fold [ long "access-log-level"
+                            , short 'a'
+                            , metavar "LOG_LEVEL"
+                            , help "Level at which to log http accesses"
+                            , value Disabled
+                            , showDefault
+                            ]
+                      )
+
       <*> (pack <$> strOption (fold [ long "connection"
                                     , short 'o'
                                     , metavar "CONNECTION_STRING"
