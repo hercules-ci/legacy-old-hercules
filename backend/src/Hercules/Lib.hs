@@ -37,7 +37,7 @@ startApp :: Config -> IO ()
 startApp config = do
   let authenticators = configAuthenticatorList config
   env <- newEnv config authenticators
-  T.putStrLn $ "Serving on http://" <> configHostName config
+  T.putStrLn $ "Serving on http://" <> configHostname config
                <> ":" <> (pack . show $ configPort config)
   run (configPort config) =<< app env
 

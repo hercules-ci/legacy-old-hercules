@@ -21,6 +21,7 @@ import Data.ByteString.Lazy            (toStrict)
 import Data.List                       (find)
 import Data.Pool
 import Data.Profunctor.Product.Default (Default)
+import Data.Text.Encoding              (encodeUtf8)
 import Database.PostgreSQL.Simple      (Connection, close, connectPostgreSQL)
 import Network.HTTP.Client             as HTTP
 import Network.HTTP.Client.TLS
@@ -85,7 +86,7 @@ runApp env = flip runReaderT env . unApp
 newEnv :: MonadIO m => Config -> [OAuth2Authenticator App] -> m Env
 newEnv Config{..} authenticators = liftIO $ do
   connection <- createPool
-    (connectPostgreSQL configConnectionString)
+    (connectPostgreSQL (encodeUtf8 configConnectionString))
     close
     4 10 4
   httpManager <- newManager tlsManagerSettings

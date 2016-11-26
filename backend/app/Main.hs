@@ -3,14 +3,15 @@
 module Main where
 
 import           Control.Exception
-import           Data.ByteString.Char8 (pack)
+import qualified Data.ByteString       as BS
+import qualified Data.ByteString.Char8 as BSC
 import           Data.Foldable         (fold)
 import qualified Data.Text             as T
+import           Data.Yaml             (decodeFileEither,
+                                        prettyPrintParseException)
 import           Options.Applicative
 import           System.Exit
 import           System.IO             (hPutStrLn, stderr)
-import           System.IO.Strict      as Strict
-import           Text.Read             (readMaybe)
 
 import Hercules.Config
 import Hercules.Lib
@@ -22,24 +23,16 @@ main = getConfig >>= startApp
 -- 'exitFailure'.
 getConfig :: IO Config
 getConfig = execParser options >>= \case
-  Left f -> do
-    let readErr = do
-          hPutStrLn stderr ("Unable to read config file: " ++ f)
-          exitFailure
-
-    let parseErr = do
-          hPutStrLn stderr ("Unable to parse config file: " ++ f)
-          exitFailure
-
-    contents <- maybe readErr pure =<< maybeReadFile f
-
-    maybe parseErr pure (readMaybe contents)
-
+  Left f -> decodeFileEither f >>= \case
+    Left err -> do
+      hPutStrLn stderr (prettyPrintParseException err)
+      exitFailure
+    Right c -> pure c
   Right c -> pure c
 
 -- | Catch any 'IOException's and return Nothing, otherwise the file contents
-maybeReadFile :: FilePath -> IO (Maybe String)
-maybeReadFile f = catch (Just <$> Strict.readFile f) h
+maybeReadFile :: FilePath -> IO (Maybe BS.ByteString)
+maybeReadFile f = catch (Just <$> BS.readFile f) h
   where h :: IOException -> IO (Maybe a)
         h = pure . const Nothing
 
@@ -69,28 +62,28 @@ options = info (helper <*> parser) description
                                       ]
                                 )
           )
-      <*> (pack <$> strOption (fold [ long "connection"
-                                    , short 'o'
-                                    , metavar "CONNECTION_STRING"
-                                    , help "postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
-                                    ]
-                              )
+      <*> (T.pack <$> strOption (fold [ long "connection"
+                                      , short 'o'
+                                      , metavar "CONNECTION_STRING"
+                                      , help "postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
+                                      ]
+                                )
           )
       <*> optional (authInfoParser "google")
       <*> optional (authInfoParser "github")
 
     authInfoParser name = AuthClientInfo
-      <$> (pack <$> strOption (fold [ long (name ++ "-client")
-                                    , metavar "CLIENT_ID"
-                                    , help (name ++ "Google OAuth2 Client ID")
-                                    ]
-                              )
+      <$> (BSC.pack <$> strOption (fold [ long (name ++ "-client")
+                                        , metavar "CLIENT_ID"
+                                        , help (name ++ "Google OAuth2 Client ID")
+                                        ]
+                                  )
           )
-      <*> (pack <$> strOption (fold [ long (name ++ "-secret")
-                                    , metavar "CLIENT_SECRET"
-                                    , help (name ++ "OAuth2 Client Secret")
-                                    ]
-                              )
+      <*> (BSC.pack <$> strOption (fold [ long (name ++ "-secret")
+                                        , metavar "CLIENT_SECRET"
+                                        , help (name ++ "OAuth2 Client Secret")
+                                        ]
+                                  )
           )
 
     description = fold

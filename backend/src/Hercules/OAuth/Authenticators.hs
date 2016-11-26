@@ -35,7 +35,7 @@ configAuthenticatorList Config{..} = catMaybes
   where
     makeCallback :: AuthenticatorName -> URI
     makeCallback (AuthenticatorName name) =
-      let authority = URIAuth "" (unpack configHostName) (":" ++ show configPort)
+      let authority = URIAuth "" (unpack configHostname) (":" ++ show configPort)
           path = "/auth-callback/" ++ unpack name
       in URI "http:" (Just authority) path "" ""
 

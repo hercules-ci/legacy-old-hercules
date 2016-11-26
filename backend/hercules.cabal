@@ -71,8 +71,8 @@ executable hercules
                      , hercules
                      , bytestring
                      , optparse-applicative
-                     , strict
                      , text
+                     , yaml
   default-language:    Haskell2010
 
 executable gen-elm

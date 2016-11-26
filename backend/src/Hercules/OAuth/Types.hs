@@ -1,5 +1,7 @@
 {-# LANGUAGE DeriveGeneric              #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE StrictData                 #-}
 
@@ -33,12 +35,12 @@ module Hercules.OAuth.Types
   ) where
 
 import Data.Aeson
-import Data.ByteString
-import Data.Text
-import GHC.Generics         (Generic)
-import Network.OAuth.OAuth2 hiding (URI)
+import Data.ByteString.Char8
+import Data.Text             (Text)
+import GHC.Generics          (Generic)
+import Network.OAuth.OAuth2  hiding (URI)
 import Network.URI.Extra
-import Servant              (FromHttpApiData)
+import Servant               (FromHttpApiData)
 
 import Hercules.OAuth.User
 
@@ -101,6 +103,11 @@ data AuthClientInfo = AuthClientInfo
   , authClientInfoSecret :: ByteString
   }
   deriving(Read, Show)
+
+instance FromJSON AuthClientInfo where
+  parseJSON = withObject "AuthClientInfo" (\v ->
+    AuthClientInfo <$> (pack <$> v .: "id")
+                   <*> (pack <$> v .: "secret"))
 
 -- | A collection of all the information necessary to authenticate with a
 -- provider

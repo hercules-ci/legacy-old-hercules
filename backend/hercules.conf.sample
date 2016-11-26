@@ -1,7 +1,0 @@
-Config 
-  { configPort = 8080
-  , configHostName = "localhost"
-  , configConnectionString = "postgresql://hydra@/hydra"
-  , configGoogleAuthInfo = Nothing
-  , configGitHubAuthInfo = Nothing
-  }

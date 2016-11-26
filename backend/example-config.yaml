@@ -1,0 +1,4 @@
+port: 8080
+hostname: "localhost"
+connectionString: "postgresql://hydra@/hydra"
+
