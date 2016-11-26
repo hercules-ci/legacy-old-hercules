@@ -1,0 +1,4 @@
+language: nix
+
+script:
+  - nix-build
