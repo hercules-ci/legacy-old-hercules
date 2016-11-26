@@ -12,12 +12,13 @@ module Main
   ( main
   ) where
 
-import Data.Text
+import Data.Text (Text)
 import Elm
 import Servant.Auth.Server
 import Servant.Elm
 import Servant.Foreign
 import Servant.Foreign.Internal (Elem)
+import Options.Applicative
 
 import Hercules.API
 import Hercules.Database.Extra
@@ -34,6 +35,7 @@ spec = Spec ["Hercules"]
               : generateElmForAPI  (Proxy :: Proxy QueryAPI)
             )
 
+-- Generate Authorization header for Elm protected URLs
 instance forall lang ftype api auths a.
     ( HasForeign lang ftype api
     , HasForeignType lang ftype Text
@@ -51,5 +53,17 @@ instance forall lang ftype api auths a.
         , _argType = typeFor lang (Proxy :: Proxy ftype) (Proxy :: Proxy Text)
         }
 
+data ElmConfig = ElmConfig
+  { elmpath :: String
+  }
+
+parser :: Parser ElmConfig
+parser =
+      ElmConfig
+  <$> argument str (metavar "PATH")
+
 main :: IO ()
-main = specsToDir [spec] "gen-elm"
+main = do
+  elmconfig <- execParser $ info (helper <*> parser)
+    (fullDesc <> progDesc "Generate types for Elm frontend")
+  specsToDir [spec] $ elmpath elmconfig

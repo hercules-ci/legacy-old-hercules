@@ -82,6 +82,7 @@ executable gen-elm
   build-depends:       base
                      , hercules
                      , elm-export
+                     , optparse-applicative
                      , servant-auth-server
                      , servant-elm
                      , servant-foreign
