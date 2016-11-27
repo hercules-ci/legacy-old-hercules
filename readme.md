@@ -1,5 +1,7 @@
 # Hercules
 
+[![Build Status](https://travis-ci.org/NixHercules/hercules.svg?branch=master)](https://travis-ci.org/NixHercules/hercules)
+
 A program to query a hydra database.
 
 ## Getting started
