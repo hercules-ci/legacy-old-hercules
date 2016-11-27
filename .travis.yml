@@ -1,5 +1,11 @@
 language: nix
 
+cache:
+  directories:
+    - /nix/store
+    - elm-stuff
+    - node_modules
+
 script:
   - cd frontend && nix-shell --run "npm i" -j 8
   - cd frontend && nix-shell --run "elm package install -y"
