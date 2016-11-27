@@ -1,4 +1,8 @@
 language: nix
 
+install:
+  - cd frontend && nix-shell --run "npm i" -j 8
+  - cd frontend && nix-shell --run "elm package install -y"
+
 script:
   - nix-build

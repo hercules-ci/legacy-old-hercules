@@ -1,0 +1,93 @@
+https://github.com/webpack/docs/wiki/list-of-plugins#environmentplugin
+
+## NEXT
+
+- jobset page
+- eval page
+- build page
+- login logic
+- search page
+
+### TODO
+
+- proxy api requests to hydra https://webpack.github.io/docs/webpack-dev-server.html#bypass-the-proxy
+- http://noredink.github.io/json-to-elm/
+- http://mbylstra.github.io/html-to-elm/
+
+## TODO (neat)
+
+- pinned jobsets support
+- jobset: filter by system
+- evaluation: view of jobs that changed in this evaluation
+- use font awesome as fallback method for icons on build products
+- live counts for queue and builds
+- hide renamed/forgotten builds on jobs view
+
+
+
+
+12 src/root/all.tt (latest builds)
+108 src/root/auth.tt (google+persona login)
+ 9 src/root/build-deps.tt
+519 src/root/build.tt (build id page)
+86 src/root/channel-contents.tt
+659 src/root/common.tt (everything)
+12 src/root/dashboard-my-jobsets-tab.tt
+17 src/root/dashboard-my-jobs-tab.tt
+49 src/root/dashboard.tt
+
+220 src/root/edit-jobset.tt
+83 src/root/edit-project.tt
+ 8 src/root/error.tt
+14 src/root/evals.tt (project, build, all evaluations)
+34 src/root/jobset-channels-tab.tt
+165 src/root/jobset-eval.tt
+69 src/root/jobset-jobs-tab.tt
+201 src/root/jobset.tt
+
+- hide disabled ones by default (and have a toggle to show them)
+- add a way to show more of them (defaut max 3 per project)
+- (nice to have) unite channels view
+
+120 src/root/job.tt (build logs)
+17 src/root/log.tt
+58 src/root/machine-status.tt
+30 src/root/machines.tt
+ 7 src/root/metric.tt
+42 src/root/news.tt
+48 src/root/overview.tt
+39 src/root/plain-reload.tt
+10 src/root/plain.tt
+293 src/root/product-list.tt
+ 8 src/root/queue-runner-status.tt
+33 src/root/queue-summary.tt
+14 src/root/queue.tt
+219 src/root/reproduce.tt
+ 9 src/root/runtime-deps.tt
+29 src/root/deps.tt
+87 src/root/search.tt
+14 src/root/status.tt (running builds)
+39 src/root/steps.tt (latest steps)
+31 src/root/users.tt (admin users)
+162 src/root/user.tt (create/edit user)
+
+
+In progress:
+
+154 src/root/topbar.tt
+
+- private hydra
+
+115 src/root/project.tt
+29 src/root/release.tt (deprecated)
+115 src/root/layout.tt
+
+- bootbox (get rid of modals or replace with bootstrap modals)
+- set TRACKER
+- tree.css, logfile.css, common.js, rtated-th.css, hydra.css
+- google auth client + process auth.tt https://github.com/NixOS/hydra/blob/master/src/root/auth.tt
+- support staring of projects/jobs
+- https://github.com/NixOS/hydra/blob/master/src/root/topbar.tt
+- flot JS?
+
+62 src/root/edit-release.tt (deprecated)

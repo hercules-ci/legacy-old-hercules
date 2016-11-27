@@ -12,7 +12,7 @@ module Main
   ( main
   ) where
 
-import Data.Text (Text)
+import Data.Text (Text, replace)
 import Elm
 import Servant.Auth.Server
 import Servant.Elm
@@ -23,16 +23,23 @@ import Options.Applicative
 import Hercules.API
 import Hercules.Database.Extra
 
+
+elmoptions :: Options
+elmoptions = Options {fieldLabelModifier = replace "'" ""}
+
+elmexportoptions :: ElmOptions
+elmexportoptions = defElmOptions { elmExportOptions = elmoptions }
+
 spec :: Spec
 spec = Spec ["Hercules"]
             (defElmImports
-              : toElmTypeSource    (Proxy :: Proxy Project)
-              : toElmDecoderSource (Proxy :: Proxy Project)
-              : toElmTypeSource    (Proxy :: Proxy Jobset)
-              : toElmDecoderSource (Proxy :: Proxy Jobset)
-              : toElmTypeSource    (Proxy :: Proxy ProjectWithJobsets)
-              : toElmDecoderSource (Proxy :: Proxy ProjectWithJobsets)
-              : generateElmForAPI  (Proxy :: Proxy QueryAPI)
+              : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Project)
+              : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Project)
+              : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Jobset)
+              : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Jobset)
+              : toElmTypeSourceWith elmoptions         (Proxy :: Proxy ProjectWithJobsets)
+              : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy ProjectWithJobsets)
+              : generateElmForAPIWith elmexportoptions (Proxy :: Proxy QueryAPI)
             )
 
 -- Generate Authorization header for Elm protected URLs
