@@ -2,16 +2,28 @@
 
 [![Build Status](https://travis-ci.org/NixHercules/hercules.svg?branch=master)](https://travis-ci.org/NixHercules/hercules)
 
-A program to query a hydra database.
+Continuous Integration for Nix projects.
 
-## Getting started
+## Backend
+
+### Getting started
 
 You'll need Nix installed and [Hydra database loaded into Postgresql]
 (https://github.com/peti/hydra-tutorial) for hydra user.
 
+    $ cd backend
     $ nix-build
     $ ./result/bin/hercules -c hercules.conf.sample
 
-## API
+### API
 
-The API is described in [API.hs](src/Hercules/API.hs).
+The API is described in [API.hs](backend/src/Hercules/API.hs).
+
+## Frontend
+
+Hot reloading is used for development, so you can start your development server:
+
+    $ cd frontend
+    $ nix-shell --run "npm i && npm run dev"
+
+And open your browser and point it to http://localhost:3000
