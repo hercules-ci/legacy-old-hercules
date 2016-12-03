@@ -13,7 +13,7 @@ You'll need Nix installed and [Hydra database loaded into Postgresql]
 
     $ cd backend
     $ nix-build
-    $ ./result/bin/hercules -c hercules.conf.sample
+    $ ./result/bin/hercules -c example-config.yaml
 
 ### API
 
