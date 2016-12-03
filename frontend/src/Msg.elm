@@ -2,7 +2,7 @@ module Msg exposing (..)
 
 import Material
 import Http
-
+import Navigation
 import Components.LiveSearch as LiveSearch
 import Urls exposing (Page)
 
@@ -22,3 +22,4 @@ type Msg
     | LiveSearchMsg LiveSearch.Msg
     | NewPage Page
     | ClickCreateProject
+    | UrlChange Navigation.Location

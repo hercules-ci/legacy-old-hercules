@@ -1,8 +1,8 @@
 module Models exposing (..)
 
 import Material
+import Maybe
 import Date
-
 import Urls exposing (..)
 
 
@@ -62,30 +62,35 @@ type alias QueueStats =
     , numMachines : Int
     }
 
+
 type alias JobSummary =
     { succeeded : Int
     , failed : Int
     , inQueue : Int
     }
 
+
 type alias Evaluation =
-  { id : Int
-  , inputChanges : String
-  , jobSummary : JobSummary
-  , evaluatedAt : Result String Date.Date
-  }
+    { id : Int
+    , inputChanges : String
+    , jobSummary : JobSummary
+    , evaluatedAt : Result String Date.Date
+    }
+
 
 type alias JobsetPage =
-  { latestCheckTime : Result String Date.Date
-  , latestEvaluationTime : Result String Date.Date
-  , latestFinishedEvaluationTime : Result String Date.Date
-  , evaluations : List Evaluation
-  , name : String
-  }
+    { latestCheckTime : Result String Date.Date
+    , latestEvaluationTime : Result String Date.Date
+    , latestFinishedEvaluationTime : Result String Date.Date
+    , evaluations : List Evaluation
+    , name : String
+    }
 
-type AjaxError msg =
-  AjaxFail msg |
-  Loading
+
+type AjaxError msg
+    = AjaxFail msg
+    | Loading
+
 
 type alias AppModel =
     { alert : Maybe Alert
@@ -101,110 +106,112 @@ type alias AppModel =
     }
 
 
-initialModel : AppModel
-initialModel =
-  let
-    jobsets = [ { id = "release-16.03"
-        , name = "release-16.03"
-        , description = "NixOS 16.03 release branch"
-        , queued = 5
-        , failed = 275
-        , succeeded = 24315
-        , lastEvaluation = "2016-05-21 13:57:13"
-        , isShown = True
+initialModel : Page -> AppModel
+initialModel page =
+    let
+        jobsets =
+            [ { id = "release-16.03"
+              , name = "release-16.03"
+              , description = "NixOS 16.03 release branch"
+              , queued = 5
+              , failed = 275
+              , succeeded = 24315
+              , lastEvaluation = "2016-05-21 13:57:13"
+              , isShown = True
+              }
+            , { id = "trunk-combined"
+              , name = "trunk-combined"
+              , description = "Combined NixOS/Nixpkgs unstable"
+              , queued = 1
+              , failed = 406
+              , succeeded = 24243
+              , lastEvaluation = "2016-05-21 13:57:03"
+              , isShown = True
+              }
+            ]
+    in
+        { alert = Nothing
+        , user = Nothing
+        , mdl = Material.model
+        , currentPage = page
+        , searchString = ""
+        , hydraConfig =
+            -- TODO: downsize logo, serve it with webpack
+            { logo = "http://nixos.org/logo/nixos-logo-only-hires.png"
+            , hydraVersion = "0.1.1234.abcdef"
+            , nixVersion = "1.12pre1234_abcdef"
+            }
+        , queueStats =
+            QueueStats 124 32345 19
+            -- Pages
+        , jobsetPage =
+            Ok
+                { latestCheckTime = Date.fromString "2016-08-06 12:38:01"
+                , latestEvaluationTime = Date.fromString "2016-08-06 17:45:55"
+                , latestFinishedEvaluationTime = Date.fromString "2016-08-06 17:45:55"
+                , name = "Hardcodedfoobar"
+                , evaluations =
+                    [ { id = 123
+                      , inputChanges = "snabbBsrc → e1fdc74"
+                      , jobSummary = { succeeded = 145, failed = 62, inQueue = 23 }
+                      , evaluatedAt = Date.fromString "2016-08-05 13:43:40"
+                      }
+                    ]
+                }
+        , jobsets = Ok []
+        , projects =
+            [ { id = "nixos"
+              , name = "NixOS"
+              , description = "the purely functional Linux distribution"
+              , isShown = True
+              , jobsets = jobsets
+              }
+            , { id = "nix"
+              , name = "Nix"
+              , description = "the purely functional package manager"
+              , isShown = True
+              , jobsets =
+                    [ { id = "master"
+                      , name = "master"
+                      , description = "Master branch"
+                      , queued = 0
+                      , failed = 33
+                      , succeeded = 1
+                      , isShown = True
+                      , lastEvaluation = "2016-05-21 13:57:13"
+                      }
+                    ]
+              }
+            , { id = "nixpkgs"
+              , name = "Nixpkgs"
+              , description = "Nix Packages collection"
+              , isShown = True
+              , jobsets =
+                    [ { id = "trunk"
+                      , name = "trunk"
+                      , description = "Trunk"
+                      , isShown = True
+                      , queued = 0
+                      , failed = 7798
+                      , succeeded = 24006
+                      , lastEvaluation = "2016-05-21 13:57:13"
+                      }
+                    , { id = "staging"
+                      , name = "staging"
+                      , description = "Staging"
+                      , isShown = True
+                      , queued = 0
+                      , failed = 31604
+                      , succeeded = 63
+                      , lastEvaluation = "2016-05-21 13:57:03"
+                      }
+                    ]
+              }
+            , { id = "nixops"
+              , name = "NixOps"
+              , description = "Deploying NixOS machines"
+              , isShown = True
+              , jobsets = []
+              }
+            ]
         }
-      , { id = "trunk-combined"
-        , name = "trunk-combined"
-        , description = "Combined NixOS/Nixpkgs unstable"
-        , queued = 1
-        , failed = 406
-        , succeeded = 24243
-        , lastEvaluation = "2016-05-21 13:57:03"
-        , isShown = True
-        }
-      ]
-  in
-    { alert = Nothing
-    , user = Nothing
-    , mdl = Material.model
-    , currentPage = Home
-    , searchString = ""
-    , hydraConfig =
-        -- TODO: downsize logo, serve it with webpack
-        { logo = "http://nixos.org/logo/nixos-logo-only-hires.png"
-        , hydraVersion = "0.1.1234.abcdef"
-        , nixVersion = "1.12pre1234_abcdef"
-        }
-    , queueStats = QueueStats 124 32345 19
-    -- Pages
-    , jobsetPage = Ok
-      { latestCheckTime = Date.fromString "2016-08-06 12:38:01"
-      , latestEvaluationTime = Date.fromString "2016-08-06 17:45:55"
-      , latestFinishedEvaluationTime = Date.fromString "2016-08-06 17:45:55"
-      , name = "Hardcodedfoobar"
-      , evaluations =
-        [ { id = 123
-          , inputChanges = "snabbBsrc → e1fdc74"
-          , jobSummary = { succeeded = 145, failed = 62, inQueue = 23 }
-          , evaluatedAt = Date.fromString "2016-08-05 13:43:40"
-          }
-
-        ]
-    }
-    , jobsets = Ok []
-    , projects =
-        [ { id = "nixos"
-          , name = "NixOS"
-          , description = "the purely functional Linux distribution"
-          , isShown = True
-          , jobsets = jobsets
-          }
-        , { id = "nix"
-          , name = "Nix"
-          , description = "the purely functional package manager"
-          , isShown = True
-          , jobsets =
-                [ { id = "master"
-                  , name = "master"
-                  , description = "Master branch"
-                  , queued = 0
-                  , failed = 33
-                  , succeeded = 1
-                  , isShown = True
-                  , lastEvaluation = "2016-05-21 13:57:13"
-                  }
-                ]
-          }
-        , { id = "nixpkgs"
-          , name = "Nixpkgs"
-          , description = "Nix Packages collection"
-          , isShown = True
-          , jobsets =
-                [ { id = "trunk"
-                  , name = "trunk"
-                  , description = "Trunk"
-                  , isShown = True
-                  , queued = 0
-                  , failed = 7798
-                  , succeeded = 24006
-                  , lastEvaluation = "2016-05-21 13:57:13"
-                  }
-                , { id = "staging"
-                  , name = "staging"
-                  , description = "Staging"
-                  , isShown = True
-                  , queued = 0
-                  , failed = 31604
-                  , succeeded = 63
-                  , lastEvaluation = "2016-05-21 13:57:03"
-                  }
-                ]
-          }
-        , { id = "nixops"
-          , name = "NixOps"
-          , description = "Deploying NixOS machines"
-          , isShown = True
-          , jobsets = []
-          }
-        ]
-    }

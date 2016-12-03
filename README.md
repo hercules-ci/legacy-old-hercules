@@ -21,6 +21,8 @@ The API is described in [API.hs](backend/src/Hercules/API.hs).
 
 ## Frontend
 
+### Getting started
+
 Hot reloading is used for development, so you can start your development server:
 
     $ cd frontend

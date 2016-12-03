@@ -14,9 +14,9 @@
   "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "webpack --optimize-minimize --bail",
-    "watch": "webpack --watch",
-    "dev": "webpack-dev-server --watch --hot --port 3000"
+    "build": "eval \"$buildHercules\" && webpack --optimize-minimize --bail",
+    "watch": "eval \"$buildHercules\" && webpack --watch",
+    "dev": "eval \"$buildHercules\" && webpack-dev-server --watch --hot --port 3000"
   },
   "author": "Domen Kozar",
   "license": "ISC"

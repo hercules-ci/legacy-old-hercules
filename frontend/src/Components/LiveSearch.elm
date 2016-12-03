@@ -9,7 +9,6 @@ import Material.Textfield as Textfield
 import Material.Color as Color
 import Material.Icon as Icon
 import Material.Options as Options
-
 import Models exposing (..)
 
 
@@ -92,45 +91,52 @@ update msg model =
               }
             , Cmd.none
             )
-        Mdl msg' ->
-              Material.update msg' model
+
+        Mdl msg_ ->
+            Material.update msg_ model
 
 
 view : AppModel -> Html Msg
 view model =
-  span
-    []
-    [ Textfield.render Mdl [0] model.mdl
-        [ Textfield.label "Search"
-        , Textfield.floatingLabel
-        , Textfield.text'
-        , Textfield.onInput SearchInput
-        , onEscape SearchEscape
-        , Textfield.value model.searchString
-        , Textfield.style [ Options.css "border-radius" "0.5em"
-                          , Color.background Color.primaryDark ]
+    span
+        []
+        [ Textfield.render Mdl
+            [ 0 ]
+            model.mdl
+            [ Textfield.label "Search"
+            , Textfield.floatingLabel
+            , Textfield.text_
+            , Textfield.onInput SearchInput
+            , onEscape SearchEscape
+            , Textfield.value model.searchString
+            , Textfield.style
+                [ Options.css "border-radius" "0.5em"
+                , Color.background Color.primaryDark
+                ]
+            ]
+        , Icon.view
+            "search"
+            [ Icon.onClick (SearchInput model.searchString)
+              -- TODO: trigger a proper search page
+            , Options.css "position" "relative"
+            , Options.css "top" "8px"
+            , Options.css "right" "28px"
+            , Options.css "z-index" "100"
+            , Options.css "cursor" "pointer"
+            ]
         ]
-    , Icon.view
-        "search"
-        [ Icon.onClick (SearchInput model.searchString) -- TODO: trigger a proper search page
-        , Options.css "position" "relative"
-        , Options.css "top" "8px"
-        , Options.css "right" "28px"
-        , Options.css "z-index" "100"
-        , Options.css "cursor" "pointer"
-        ]
-    ]
+
 
 onEscape : msg -> Textfield.Property msg
 onEscape msg =
-    Textfield.on "keydown" (Json.map (always msg) (Json.customDecoder keyCode isEscape))
+    Textfield.on "keydown" (Json.map (always msg) (Json.int |> Json.andThen isEscape))
 
 
-isEscape : Int -> Result String ()
+isEscape : Int -> Json.Decoder Int
 isEscape code =
     case code of
         27 ->
-            Ok ()
+            Json.succeed 27
 
         _ ->
-            Err "not the right key code"
+            Json.fail "not the right key code"

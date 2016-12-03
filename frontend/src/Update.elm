@@ -6,13 +6,14 @@ import Models exposing (..)
 import Msg exposing (..)
 import Components.LiveSearch as LiveSearch
 import Urls exposing (..)
+import UrlParser exposing (parsePath)
 
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
 update msg model =
     case msg of
-        Mdl msg' ->
-              Material.update msg' model
+        Mdl msg_ ->
+            Material.update msg_ model
 
         FetchSucceed init ->
             ( model, Cmd.none )
@@ -59,31 +60,13 @@ update msg model =
             -- TODO: http
             ( model, Cmd.none )
 
-
-urlUpdate : Result String Page -> AppModel -> ( AppModel, Cmd b )
-urlUpdate result model =
-    case result of
-        Err msg ->
+        UrlChange location ->
             let
-                msg =
-                    (Debug.log "urlUpdate:" msg)
-
-                alert =
-                    { kind = Danger
-                    , msg = "Given URL returned 404."
-                    }
+                page = Maybe.withDefault Home (parsePath pageParser location)
             in
-                { model | alert = Just alert } ! []
-
-        Ok page ->
-            ( { model
-                | currentPage = page
-                , alert = Nothing
-              }
+            ( { model | currentPage = page }
             , title (pageToTitle page)
             )
-
-
 
 -- Ports
 

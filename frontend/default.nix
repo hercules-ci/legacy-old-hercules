@@ -1,29 +1,28 @@
-{ backend ? (import ./../backend {})}:
+{ backend ? (import ./../backend {})
+, pkgs ? (import ./../pkgs.nix) {} }:
 
-with import (fetchTarball https://github.com/NixOS/nixpkgs/archive/e725c927d4a09ee116fe18f2f0718364678a321f.tar.gz) {};
+with pkgs;
 
 stdenv.mkDerivation {
  name = "hydra-frontend";
 
  src = ./.;
 
- buildInputs = [ elmPackages.elm nodejs ];
+ buildInputs = [ elmPackages.elm elmPackages.elm-format nodejs ];
 
  patchPhase = ''
    patchShebangs node_modules/webpack
  '';
 
- buildPhase = ''
-   ${backend}/bin/gen-elm src
-  
-   # https://github.com/NixHercules/hercules/issues/3
-   sed -i "s@'@@g" src/Hercules.elm
+ # https://github.com/NixHercules/hercules/issues/3
+ buildHercules = "${backend}/bin/gen-elm src && sed -i \"s@'@@g\" src/Hercules.elm";
 
+ buildPhase = ''
    npm run build
  '';
 
  installPhase = ''
    mkdir $out
-   cp dist/* $out/
+   cp -R dist/* $out/
  '';
 }

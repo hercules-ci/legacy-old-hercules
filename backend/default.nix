@@ -1,7 +1,6 @@
-{ nixpkgs ? fetchTarball https://github.com/NixOS/nixpkgs/archive/9f251e1cb138f4a299b1da4257ba119311373ff4.tar.gz }:
+{ pkgs ? (import ./../pkgs.nix) {} }:
 
 let
-  pkgs = import nixpkgs {};
   haskellPackages = pkgs.haskell.packages.ghc801.override{
     overrides =
       let overrideAttrs = package: newAttrs: package.override (args: args // {
@@ -30,11 +29,11 @@ let
             src = pkgs.fetchFromGitHub {
               owner = "mattjbray";
               repo = "servant-elm";
-              rev = "41793b2d8eddfb2dc35e174457702a43f1486bb0";
-              sha256 = "13qk6czck9rlby704fryp8mdryf13lllpkj1arj8bkmhbi5q41gd";
+              rev = "07650488c990ead6483b5c9a5fde560705ad2f58";
+              sha256 = "1q3bsvkv9kls8bi0jl36pjzla2kjvb6j3gla8f2wshxhash8ixvi";
             };
             libraryHaskellDepends = with self; [
-              base elm-export lens servant servant-foreign text interpolate mockery
+              base elm-export lens servant servant-foreign text interpolate mockery wl-pprint-text
             ];
             doCheck = false;
           };
@@ -54,11 +53,11 @@ let
             jailbreak = true;
           };
 
-          #
           # New versions for servant-auth
           #
-          jose = super.jose_0_5_0_0;
+          jose = super.jose_0_5_0_1;
 
+          #
           #
           # New versions for opaleye-gen
           #

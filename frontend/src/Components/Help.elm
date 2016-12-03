@@ -4,7 +4,6 @@ import Html exposing (..)
 import Material.Icon as Icon
 import Material.Options as Options
 import Material.Tooltip as Tooltip
-
 import Msg exposing (..)
 import Models exposing (..)
 
@@ -15,28 +14,32 @@ import Models exposing (..)
 -}
 popoverHelp : AppModel -> List (Html Msg) -> Html Msg
 popoverHelp model html =
-   span
-     []
-     [ Icon.view "help"
-         [ Options.css "margin" "0 6px"
-         , Options.css "color" "#0088CC"
-         , Options.css "cursor" "help"
-         , Tooltip.attach Mdl [3]
-         ]
-     , Tooltip.render Mdl [3] model.mdl
-        [ Tooltip.large ]
-        html
-     ]
+    span
+        []
+        [ Icon.view "help"
+            [ Options.css "margin" "0 6px"
+            , Options.css "color" "#0088CC"
+            , Options.css "cursor" "help"
+            , Tooltip.attach Mdl [ 3 ]
+            ]
+        , Tooltip.render Mdl
+            [ 3 ]
+            model.mdl
+            [ Tooltip.large ]
+            html
+        ]
+
 
 projectHelp : AppModel -> Html Msg
 projectHelp model =
-  popoverHelp model [ text "TODO" ]
+    popoverHelp model [ text "TODO" ]
+
 
 jobsetHelp : AppModel -> Html Msg
 jobsetHelp model =
-  popoverHelp
-    model
-    [ text "Jobsets evaluate a Nix expression and provide an overview of successful/failed builds." ]
+    popoverHelp
+        model
+        [ text "Jobsets evaluate a Nix expression and provide an overview of successful/failed builds." ]
 
 
 evaluationHelp : AppModel -> Html Msg
@@ -51,4 +54,4 @@ buildHelp model =
 
 buildStepHelp : AppModel -> Html Msg
 buildStepHelp model =
-    popoverHelp model [ text ""]
+    popoverHelp model [ text "" ]

@@ -5,7 +5,6 @@ import Html.Attributes exposing (..)
 import List
 import Material.Icon as Icon
 import Material.Options as Options
-
 import Msg exposing (..)
 import Models exposing (..)
 import Urls as Urls exposing (..)
@@ -21,23 +20,27 @@ type alias Breadcrumb =
 renderBreadcrumbs : List Breadcrumb -> List (Html Msg)
 renderBreadcrumbs breadcrumbs =
     let
-        home = a (onClickPage Home) [ text "Hydra"]
+        home =
+            a (onClickPage Home) [ text "Hydra" ]
+
         render breadcrumb =
             case breadcrumb.page of
                 Just page ->
                     a (onClickPage page)
-                      [ text breadcrumb.name ]
+                        [ text breadcrumb.name ]
 
                 Nothing ->
                     span [ class "active" ]
-                         [ text breadcrumb.name ]
-    in List.intersperse
-         (Icon.view "keyboard_arrow_right"
-                    [ Icon.size36
-                    , Options.css "top" "10px"
-                    , Options.css "position" "relative"
-                    ])
-         (home :: List.map render breadcrumbs)
+                        [ text breadcrumb.name ]
+    in
+        List.intersperse
+            (Icon.view "keyboard_arrow_right"
+                [ Icon.size36
+                , Options.css "top" "10px"
+                , Options.css "position" "relative"
+                ]
+            )
+            (home :: List.map render breadcrumbs)
 
 
 breadCrumbs : AppModel -> List (Html Msg)
@@ -58,4 +61,5 @@ breadCrumbs model =
                     [ Breadcrumb project (Just (Urls.Project project))
                     , Breadcrumb jobset Nothing
                     ]
-    in renderBreadcrumbs breadcrumbs
+    in
+        renderBreadcrumbs breadcrumbs
