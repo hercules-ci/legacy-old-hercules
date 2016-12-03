@@ -12,19 +12,19 @@ import View exposing (..)
 import Urls exposing (..)
 
 
-init : Navigation.Location -> ( AppModel, Cmd Msg )
-init location =
+init : Flags -> Navigation.Location -> ( AppModel, Cmd Msg )
+init flags location =
     let
         page = Maybe.withDefault Home (parsePath pageParser location)
-        model = initialModel page
+        model = initialModel page flags
     in model ! [ Material.init Mdl
                , title (pageToTitle page)
                ]
 
 
-main : Program Never AppModel Msg
+main : Program Flags AppModel Msg
 main =
-    Navigation.program UrlChange
+    Navigation.programWithFlags UrlChange
         { init = init
         , update = update
         , view = view

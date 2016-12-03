@@ -6,6 +6,10 @@ import Date
 import Urls exposing (..)
 
 
+type alias Flags =
+    { backendURL : String
+    }
+
 type AlertType
     = Danger
     | Info
@@ -102,12 +106,13 @@ type alias AppModel =
     , mdl : Material.Model
     , queueStats : QueueStats
     , searchString : String
+    , backendURL : String
     , currentPage : Page
     }
 
 
-initialModel : Page -> AppModel
-initialModel page =
+initialModel : Page -> Flags -> AppModel
+initialModel page flags =
     let
         jobsets =
             [ { id = "release-16.03"
@@ -132,6 +137,7 @@ initialModel page =
     in
         { alert = Nothing
         , user = Nothing
+        , backendURL = flags.backendURL
         , mdl = Material.model
         , currentPage = page
         , searchString = ""

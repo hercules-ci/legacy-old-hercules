@@ -1,5 +1,6 @@
 { backend ? (import ./../backend {})
-, pkgs ? (import ./../pkgs.nix) {} }:
+, pkgs ? (import ./../pkgs.nix) {}
+, backendURL ? "http://localhost:8080" }:
 
 with pkgs;
 
@@ -16,6 +17,8 @@ stdenv.mkDerivation {
 
  # https://github.com/NixHercules/hercules/issues/3
  buildHercules = "${backend}/bin/gen-elm src && sed -i \"s@'@@g\" src/Hercules.elm";
+
+ HERCULES_URL = backendURL;
 
  buildPhase = ''
    npm run build

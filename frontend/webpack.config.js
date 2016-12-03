@@ -26,9 +26,12 @@ module.exports = {
         loader:  'elm-hot!elm-webpack?warn=true',
       }
     ],
-
     noParse: /\.elm$/,
   },
+
+  plugins: [
+    new webpack.EnvironmentPlugin(["HERCULES_URL"])
+  ],
 
   devServer: {
     inline: true,
