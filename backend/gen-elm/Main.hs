@@ -12,7 +12,7 @@ module Main
   ( main
   ) where
 
-import Data.Text (Text, replace)
+import Data.Text (Text, replace, pack)
 import Elm
 import Servant.Auth.Server
 import Servant.Elm
@@ -27,11 +27,8 @@ import Hercules.Database.Extra
 elmoptions :: Options
 elmoptions = Options {fieldLabelModifier = replace "'" ""}
 
-elmexportoptions :: ElmOptions
-elmexportoptions = defElmOptions { elmExportOptions = elmoptions }
-
-spec :: Spec
-spec = Spec ["Hercules"]
+spec :: ElmOptions -> Spec
+spec elmexportoptions = Spec ["Hercules"]
             (defElmImports
               : toElmTypeSourceWith elmoptions         (Proxy :: Proxy Project)
               : toElmDecoderSourceWith elmoptions      (Proxy :: Proxy Project)
@@ -62,15 +59,18 @@ instance forall lang ftype api auths a.
 
 data ElmConfig = ElmConfig
   { elmpath :: String
+  , elmherculesurl :: String
   }
 
 parser :: Parser ElmConfig
 parser =
       ElmConfig
-  <$> argument str (metavar "PATH")
+  <$> argument str (metavar "FOLDER")
+  <*> argument str (metavar "HERCULES-URL")
 
 main :: IO ()
 main = do
   elmconfig <- execParser $ info (helper <*> parser)
     (fullDesc <> progDesc "Generate types for Elm frontend")
-  specsToDir [spec] $ elmpath elmconfig
+  let elmexportoptions = defElmOptions { elmExportOptions = elmoptions , urlPrefix = pack (elmherculesurl elmconfig) }
+  specsToDir [spec elmexportoptions] $ elmpath elmconfig
