@@ -34,3 +34,6 @@ Hot reloading is used for development, so you can start your development server:
     $ nix-shell --run "npm i && npm run dev"
 
 And open your browser and point it to http://localhost:3000
+
+## License
+Backend ([BSD3](backend/LICENSE)) / Frontend ([BSD3](frontend/elm-package.json))
