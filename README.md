@@ -1,6 +1,6 @@
 # Hercules
 
-[![Build Status](https://travis-ci.org/NixHercules/hercules.svg?branch=master)](https://travis-ci.org/NixHercules/hercules)
+[![Build Status](https://travis-ci.org/hercules-ci/hercules.svg?branch=master)](https://travis-ci.org/hercules-ci/hercules)
 
 Continuous Integration for Nix projects.
 
