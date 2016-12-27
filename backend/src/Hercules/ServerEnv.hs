@@ -8,7 +8,7 @@ module Hercules.ServerEnv
   , App(..)
   , runApp
   , newEnv
-  , runQueryWithConnection
+  , runHydraQueryWithConnection
   , withHttpManager
   , getAuthenticator
   , makeUserJWT
@@ -76,17 +76,17 @@ getAuthenticator :: AuthenticatorName -> App (Maybe (OAuth2Authenticator App))
 getAuthenticator name =
   find ((== name) . authenticatorName) <$> asks envAuthenticators
 
-makeUserJWT :: User -> App (Either Error PackedJWT)
+makeUserJWT :: UserId -> App (Either Error PackedJWT)
 makeUserJWT user = do
   jwtSettings <- asks envJWTSettings
   liftIO $ fmap (PackedJWT . toStrict) <$> makeJWT user jwtSettings Nothing
 
 -- | Evaluate a query in an 'App' value
-runQueryWithConnection
+runHydraQueryWithConnection
   :: Default QueryRunner columns haskells
   => Default Unpackspec columns columns
   => Query columns -> App [haskells]
-runQueryWithConnection q = do
+runHydraQueryWithConnection q = do
   logQuery q
   withConnection (\c -> runQuery c q)
 

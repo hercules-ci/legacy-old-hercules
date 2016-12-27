@@ -18,15 +18,16 @@ library
   exposed-modules:     Hercules.Lib
                        Hercules.API
                        Hercules.Config
-                       Hercules.Database
                        Hercules.Database.Extra
+                       Hercules.Database.Hercules
+                       Hercules.Database.Hydra
                        Hercules.OAuth
                        Hercules.OAuth.Authenticators
                        Hercules.OAuth.Authenticators.GitHub
                        Hercules.OAuth.Authenticators.Google
                        Hercules.OAuth.Types
                        Hercules.OAuth.User
-                       Hercules.Query
+                       Hercules.Query.Hydra
                        Hercules.Log
                        Hercules.ServerEnv
                        Hercules.Static

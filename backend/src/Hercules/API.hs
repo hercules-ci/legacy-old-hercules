@@ -6,7 +6,7 @@ module Hercules.API
   , QueryAPI
   , Unprotected
   , Protected
-  , User(..)
+  , UserId(..)
   ) where
 
 import Data.Text
@@ -30,7 +30,7 @@ type Unprotected =
 type Protected = "protected" :> Get '[JSON] Text
 
 type QueryAPI = Unprotected
-      :<|> Auth '[JWT] User :> Protected
+      :<|> Auth '[JWT] UserId :> Protected
 
 -- | A bunch of pages used for debugging and examples
 type Pages = "login" :> Get '[HTML] Html
@@ -45,7 +45,7 @@ type Pages = "login" :> Get '[HTML] Html
                              :> Get '[HTML] Html
         :<|> "logged-in" :> QueryParam "jwt" Text
                          :> Get '[HTML] Html
-
+        :<|> "repos" :> Auth '[JWT] UserId :> Get '[HTML] Html
 
 type API = QueryAPI
       :<|> Pages
