@@ -32,6 +32,7 @@ type Protected = "protected" :> Get '[JSON] Text
 type QueryAPI = Unprotected
       :<|> Auth '[JWT] User :> Protected
 
+-- | A bunch of pages used for debugging and examples
 type Pages = "login" :> Get '[HTML] Html
         :<|> "login" :> Capture "authType" AuthenticatorName
                      :> QueryParam "state" AuthClientState
