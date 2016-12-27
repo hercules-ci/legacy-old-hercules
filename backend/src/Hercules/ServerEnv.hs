@@ -20,14 +20,17 @@ import Control.Monad.Reader
 import Crypto.JOSE.Error
 import Data.ByteString.Lazy            (toStrict)
 import Data.List                       (find)
+import Data.Maybe                      (fromMaybe)
 import Data.Pool
 import Data.Profunctor.Product.Default (Default)
+import Data.String                     (fromString)
 import Data.Text.Encoding              (encodeUtf8)
 import Data.Time.Format
 import Database.PostgreSQL.Simple      (Connection, close, connectPostgreSQL)
 import Network.HTTP.Client             as HTTP
 import Network.HTTP.Client.TLS
-import Opaleye                         (Query, QueryRunner, runQuery)
+import Opaleye                         (Query, QueryRunner, Unpackspec,
+                                        runQuery, showSql)
 import Servant                         (ServantErr)
 import Servant.Auth.Server             (JWTSettings, defaultJWTSettings,
                                         generateKey, makeJWT)
@@ -80,8 +83,20 @@ makeUserJWT user = do
 
 -- | Evaluate a query in an 'App' value
 runQueryWithConnection
-  :: Default QueryRunner columns haskells => Query columns -> App [haskells]
-runQueryWithConnection q = withConnection (\c -> runQuery c q)
+  :: Default QueryRunner columns haskells
+  => Default Unpackspec columns columns
+  => Query columns -> App [haskells]
+runQueryWithConnection q = do
+  logQuery q
+  withConnection (\c -> runQuery c q)
+
+logQuery
+  :: Default Unpackspec columns columns
+  => Query columns
+  -> App ()
+logQuery q =
+  let s = fromMaybe "Empty query" $ showSql q
+  in logDebug (fromString s)
 
 runApp :: Env -> App a -> ExceptT ServantErr IO a
 runApp env = mapExceptT runLog
