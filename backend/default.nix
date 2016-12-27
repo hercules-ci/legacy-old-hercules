@@ -109,7 +109,7 @@ let
         };
       };
 
- haskellPackageGen = { doHaddock ? false, doFilter ? true }: src:
+  haskellPackageGen = { doHaddock ? false, doFilter ? true }: src:
     let filteredSrc = builtins.filterSource (n: t: t != "unknown") src;
         package = pkgs.runCommand "default.nix" {} ''
           ${pkgs.haskell.packages.ghc801.cabal2nix}/bin/cabal2nix \
