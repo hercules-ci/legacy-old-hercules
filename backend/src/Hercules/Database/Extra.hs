@@ -4,12 +4,12 @@
 
 module Hercules.Database.Extra
   ( ProjectWithJobsets(..)
-  , module Hercules.Database
+  , module Hercules.Database.Hydra
   ) where
 
 import Data.Aeson
 import GHC.Generics
-import Hercules.Database
+import Hercules.Database.Hydra
 import Servant.Elm
 
 data ProjectWithJobsets = ProjectWithJobsets

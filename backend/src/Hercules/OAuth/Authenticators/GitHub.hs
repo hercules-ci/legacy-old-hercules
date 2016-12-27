@@ -58,11 +58,11 @@ githubAccessTokenEndpoint :: AccessTokenEndpoint
 githubAccessTokenEndpoint = AccessTokenEndpoint . fromJust . parseURI
                           $ "https://github.com/login/oauth/access_token"
 
-githubGetUserInfo :: AccessToken -> App (Either Text User)
+githubGetUserInfo :: AccessToken -> App (Either Text UserId)
 githubGetUserInfo token = do
   withHttpManager (\m -> getUserInfo m token) >>= \case
     Left _err -> pure $ Left "Error getting user info"
-    Right user -> pure $ Right (User (Email (gemail user)))
+    Right user -> pure $ Right (UserId 0) -- TODO: Fix
 
 getUserInfo :: Manager -> AccessToken -> IO (OAuth2Result GitHubUser)
 getUserInfo manager token = do

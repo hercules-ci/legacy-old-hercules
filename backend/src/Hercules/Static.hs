@@ -8,6 +8,7 @@ module Hercules.Static
   ( welcomePage
   , loginPage
   , loggedInPage
+  , reposPage
   ) where
 
 
@@ -22,6 +23,7 @@ import Text.Markdown                 (defaultMarkdownSettings, markdown)
 
 import Hercules.OAuth.Authenticators
 import Hercules.OAuth.Types
+import Hercules.OAuth.User
 import Hercules.ServerEnv
 
 welcomePage :: App Html
@@ -65,3 +67,10 @@ loginPage name stateString frontendURL = do
 
 makeState :: FrontendURL -> Maybe AuthClientState -> App AuthState
 makeState frontendURL = pure . AuthState frontendURL
+
+reposPage :: UserId -> App Html
+reposPage _ =
+  let
+  in pure $ markdown defaultMarkdownSettings [qc|
+# Users repos
+|]

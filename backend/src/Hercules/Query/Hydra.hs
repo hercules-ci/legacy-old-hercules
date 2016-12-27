@@ -5,7 +5,7 @@
 A module to handle the different queries we might want to make to Hydra's
 database
 -}
-module Hercules.Query
+module Hercules.Query.Hydra
   ( projectNameQuery
   , projectQuery
   , projectsQuery
@@ -16,7 +16,7 @@ import Control.Arrow (returnA)
 import Data.Text
 import Opaleye
 
-import Hercules.Database
+import Hercules.Database.Hydra
 
 -- | A query to get a list of all the project names
 projectNameQuery :: Query (Column PGText)

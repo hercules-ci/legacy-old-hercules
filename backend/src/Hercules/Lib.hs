@@ -5,6 +5,7 @@ module Hercules.Lib
   ( startApp
   ) where
 
+import Control.Monad                        (join)
 import Control.Monad.Log
 import Data.Bifunctor                       (second)
 import Data.Foldable                        (toList)
@@ -31,8 +32,7 @@ import Hercules.Database.Extra       (JobsetNullable, Project,
                                       fromNullableJobset, projectName)
 import Hercules.OAuth
 import Hercules.OAuth.Authenticators
-import Hercules.OAuth.User
-import Hercules.Query
+import Hercules.Query.Hydra
 import Hercules.ServerEnv
 import Hercules.Static
 
@@ -66,6 +66,7 @@ server env = enter (Nat (runApp env)) api
                 :<|> (mandatory1 .: loginPage)
                 :<|> (mandatory1 .∵ authCallback)
                 :<|> loggedInPage
+                :<|> (join . withAuthenticated reposPage)
         queryApi = unprotected :<|> protected
         unprotected = getProjectNames
                       :<|> getProjects
@@ -79,27 +80,30 @@ server env = enter (Nat (runApp env)) api
 (.∵) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
 (.∵) = (.) . (.) . (.)
 
-getUser :: AuthResult User -> App Text
-getUser = \case
-  (Authenticated (User (Email email))) -> pure email
-  _                                    -> do
+getUser :: AuthResult UserId -> App Text
+getUser = withAuthenticated (pack . show)
+
+withAuthenticated :: (a -> b) -> AuthResult a -> App b
+withAuthenticated f = \case
+  (Authenticated x) -> pure (f x)
+  _                 -> do
     logNotice "Failed user authentication attempt"
     throwError err401
 
 getProjectNames :: App [Text]
-getProjectNames = runQueryWithConnection projectNameQuery
+getProjectNames = runHydraQueryWithConnection projectNameQuery
 
 getProject :: Text -> App (Maybe Project)
-getProject name = headMay <$> runQueryWithConnection (projectQuery name)
+getProject name = headMay <$> runHydraQueryWithConnection (projectQuery name)
 
 getProjects :: App [Project]
-getProjects = runQueryWithConnection projectsQuery
+getProjects = runHydraQueryWithConnection projectsQuery
 
 getProjectsWithJobsets :: App [ProjectWithJobsets]
 getProjectsWithJobsets =
   fmap (uncurry makeProjectWithJobsets . second toList)
   . groupSortOn projectName
-  <$> (runQueryWithConnection projectsWithJobsetsQuery :: App [(Project, JobsetNullable)])
+  <$> (runHydraQueryWithConnection projectsWithJobsetsQuery :: App [(Project, JobsetNullable)])
   where
     makeProjectWithJobsets :: Project -> [JobsetNullable] -> ProjectWithJobsets
     makeProjectWithJobsets p jms =
