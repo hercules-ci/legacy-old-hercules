@@ -36,6 +36,7 @@ library
                        Network.URI.Extra
                        Servant.Mandatory
                        Servant.Redirect
+                       Opaleye.Extra
   build-depends:       base                >= 4.7 && < 5
                      , aeson
                      , async

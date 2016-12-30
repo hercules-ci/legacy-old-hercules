@@ -17,7 +17,6 @@ import Data.Text            hiding (tail)
 import Network.HTTP.Client  (Manager)
 import Network.OAuth.OAuth2 hiding (URI)
 import Network.URI
-import Opaleye              (pgStrictText, runInsertManyReturning, toNullable)
 
 import Hercules.Config            (AuthClientInfo (..))
 import Hercules.Database.Hercules
@@ -78,18 +77,11 @@ findOrCreateUser user = do
 
 createUser :: GitHubUser -> App (Either Text UserId)
 createUser GitHubUser{..} = do
-  let user = User Nothing
-                  (Just (toNullable (pgStrictText gname)))
-                  (Just (toNullable (pgStrictText gemail)))
-                  (Just (toNullable (pgStrictText . pack . show $ gid)))
-  withHerculesConnection (\c -> do
-    runInsertManyReturning c userTable [user] userId
-    ) >>= \case
-      [] -> pure $ Left "No rows inserted"
-      [i] -> pure $ Right (UserId i)
-      _ -> pure $ Left "Impossible, multiple rows inserted"
+  let user = User () gname gemail (pack . show $ gid)
+  withHerculesConnection (\c -> insertUser c user) >>= \case
+    Nothing -> pure $ Left "Error inserting user"
+    Just i -> pure $ Right i
 
 getUserInfo :: Manager -> AccessToken -> IO (OAuth2Result GitHubUser)
 getUserInfo manager token = do
   authGetJSON manager token "https://api.github.com/user"
-
