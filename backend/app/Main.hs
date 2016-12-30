@@ -70,10 +70,17 @@ options = info (helper <*> parser) description
                             , showDefault
                             ]
                       )
-      <*> (T.pack <$> strOption (fold [ long "connection"
-                                      , short 'o'
+      <*> (T.pack <$> strOption (fold [ long "hercules-connection"
+                                      , short 'e'
                                       , metavar "CONNECTION_STRING"
-                                      , help "postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
+                                      , help "hercules database postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
+                                      ]
+                                )
+          )
+      <*> (T.pack <$> strOption (fold [ long "hydra-connection"
+                                      , short 'y'
+                                      , metavar "CONNECTION_STRING"
+                                      , help "hydra database postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
                                       ]
                                 )
           )
