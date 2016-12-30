@@ -10,6 +10,7 @@ module Hercules.ServerEnv
   , newEnv
   , runHerculesQueryWithConnection
   , runHydraQueryWithConnection
+  , withHerculesConnection
   , withHttpManager
   , getAuthenticator
   , makeUserJWT

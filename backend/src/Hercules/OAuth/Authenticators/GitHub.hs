@@ -1,5 +1,6 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE RecordWildCards   #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
 
@@ -16,10 +17,13 @@ import Data.Text            hiding (tail)
 import Network.HTTP.Client  (Manager)
 import Network.OAuth.OAuth2 hiding (URI)
 import Network.URI
+import Opaleye              (pgStrictText, runInsertManyReturning, toNullable)
 
-import Hercules.Config      (AuthClientInfo (..))
+import Hercules.Config            (AuthClientInfo (..))
+import Hercules.Database.Hercules
 import Hercules.OAuth.Types
 import Hercules.OAuth.User
+import Hercules.Query.Hercules
 import Hercules.ServerEnv
 
 {-# ANN module ("HLint: Ignore Use CamelCase" :: String) #-}
@@ -61,8 +65,29 @@ githubAccessTokenEndpoint = AccessTokenEndpoint . fromJust . parseURI
 githubGetUserInfo :: AccessToken -> App (Either Text UserId)
 githubGetUserInfo token = do
   withHttpManager (\m -> getUserInfo m token) >>= \case
-    Left _err -> pure $ Left "Error getting user info"
-    Right user -> pure $ Right (UserId 0) -- TODO: Fix
+    Left _err  -> pure $ Left "Error getting user info"
+    Right user -> findOrCreateUser user
+
+findOrCreateUser :: GitHubUser -> App (Either Text UserId)
+findOrCreateUser user = do
+  let textId = pack . show . gid $ user
+  runHerculesQueryWithConnection (userIdQuery textId) >>= \case
+    []  -> createUser user
+    [u] -> pure $ Right (UserId (userId (u :: User)))
+    _   -> pure $ Left "Multiple users with the same id in database!"
+
+createUser :: GitHubUser -> App (Either Text UserId)
+createUser GitHubUser{..} = do
+  let user = User Nothing
+                  (Just (toNullable (pgStrictText gname)))
+                  (Just (toNullable (pgStrictText gemail)))
+                  (Just (toNullable (pgStrictText . pack . show $ gid)))
+  withHerculesConnection (\c -> do
+    runInsertManyReturning c userTable [user] userId
+    ) >>= \case
+      [] -> pure $ Left "No rows inserted"
+      [i] -> pure $ Right (UserId i)
+      _ -> pure $ Left "Impossible, multiple rows inserted"
 
 getUserInfo :: Manager -> AccessToken -> IO (OAuth2Result GitHubUser)
 getUserInfo manager token = do
