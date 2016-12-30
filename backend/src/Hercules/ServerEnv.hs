@@ -8,6 +8,7 @@ module Hercules.ServerEnv
   , App(..)
   , runApp
   , newEnv
+  , runHerculesQueryWithConnection
   , runHydraQueryWithConnection
   , withHttpManager
   , getAuthenticator
@@ -43,7 +44,8 @@ import Hercules.OAuth.User
 
 {-# ANN module "HLint: ignore Avoid lambda" #-}
 
-data Env = Env { envConnectionPool :: Pool Connection
+data Env = Env { envHerculesConnectionPool :: Pool Connection
+               , envHydraConnectionPool :: Pool Connection
                , envHttpManager    :: HTTP.Manager
                , envAuthenticators :: [OAuth2Authenticator App]
                , envJWTSettings    :: JWTSettings
@@ -61,10 +63,18 @@ newtype App a = App
            , MonadReader Env
            )
 
--- | Perform an action with a PostgreSQL connection and return the result
-withConnection :: (Connection -> IO a) -> App a
-withConnection f = do
-  connectionPool <- asks envConnectionPool
+-- | Perform an action with a PostgreSQL connection to the Hercules DB and
+-- return the result
+withHerculesConnection :: (Connection -> IO a) -> App a
+withHerculesConnection f = do
+  connectionPool <- asks envHerculesConnectionPool
+  liftIO $ withResource connectionPool f
+
+-- | Perform an action with a PostgreSQL connection to the Hydra DB and return
+-- the result
+withHydraConnection :: (Connection -> IO a) -> App a
+withHydraConnection f = do
+  connectionPool <- asks envHydraConnectionPool
   liftIO $ withResource connectionPool f
 
 withHttpManager :: (HTTP.Manager -> IO a) -> App a
@@ -82,13 +92,22 @@ makeUserJWT user = do
   liftIO $ fmap (PackedJWT . toStrict) <$> makeJWT user jwtSettings Nothing
 
 -- | Evaluate a query in an 'App' value
+runHerculesQueryWithConnection
+  :: Default QueryRunner columns haskells
+  => Default Unpackspec columns columns
+  => Query columns -> App [haskells]
+runHerculesQueryWithConnection q = do
+  logQuery q
+  withHerculesConnection (\c -> runQuery c q)
+
+-- | Evaluate a query in an 'App' value
 runHydraQueryWithConnection
   :: Default QueryRunner columns haskells
   => Default Unpackspec columns columns
   => Query columns -> App [haskells]
 runHydraQueryWithConnection q = do
   logQuery q
-  withConnection (\c -> runQuery c q)
+  withHydraConnection (\c -> runQuery c q)
 
 logQuery
   :: Default Unpackspec columns columns
@@ -111,15 +130,20 @@ runApp env = mapExceptT runLog
 
 newEnv :: MonadIO m => Config -> [OAuth2Authenticator App] -> m Env
 newEnv Config{..} authenticators = liftIO $ do
-  connection <- createPool
-    (connectPostgreSQL (encodeUtf8 configConnectionString))
+  hydraConnection <- createPool
+    (connectPostgreSQL (encodeUtf8 configHydraConnectionString))
+    close
+    4 10 4
+  herculesConnection <- createPool
+    (connectPostgreSQL (encodeUtf8 configHerculesConnectionString))
     close
     4 10 4
   httpManager <- newManager tlsManagerSettings
   key <- liftIO generateKey
   let jwtSettings = defaultJWTSettings key
   pure $ Env
-    connection
+    herculesConnection
+    hydraConnection
     httpManager
     authenticators
     jwtSettings
