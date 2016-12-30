@@ -28,6 +28,7 @@ library
                        Hercules.OAuth.Types
                        Hercules.OAuth.User
                        Hercules.Query.Hydra
+                       Hercules.Query.Hercules
                        Hercules.Log
                        Hercules.ServerEnv
                        Hercules.Static
