@@ -23,3 +23,4 @@ dist/
 elm-stuff/
 node_modules/
 frontend/src/Hercules.elm
+docs/_build/
