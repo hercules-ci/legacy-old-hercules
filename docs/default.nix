@@ -11,13 +11,16 @@ stdenv.mkDerivation {
 
   buildInputs = [ python3Packages.sphinx ];
 
-  # TODO: generate API from backend
+  preBuild = ''
+    ${backend}/bin/gen-docs
+    sed -i '1 i\HTTP API\n********' api.rst
+  '';
 
   buildFlags = ["html"];
 
 
   installPhase = ''
     mkdir $out
-    cp -R _build/html $out
+    cp -R _build/html/* $out
   '';
 }

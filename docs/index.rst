@@ -6,11 +6,31 @@
 Welcome to Hercules's documentation!
 ====================================
 
-Contents:
+:Author: Domen Kožar <domen@enlambda.com>, Joe Hermaszewski <git@monoid.al>
+:Source code: `github.com/hercules-ci/hercules <https://github.com/hercules-ci/hercules.git>`_
+:License: BSD3
+:Version: |release|
+
+
+.. sidebar:: Features
+
+    - 
+
+
+.. topic:: Introduction
+
+   ...
+
+
+Documentation
+=============
 
 .. toctree::
    :maxdepth: 2
 
+   getting-started.rst
+   faq.rst
+   api.rst
 
 
 Indices and tables
