@@ -2,9 +2,8 @@ language: nix
 
 cache:
   directories:
-    - /nix/store
-    - elm-stuff
-    - node_modules
+    - frontend/elm-stuff
+    - frontend/node_modules
 
 script:
   - pushd frontend
