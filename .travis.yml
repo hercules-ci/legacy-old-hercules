@@ -7,6 +7,7 @@ cache:
     - node_modules
 
 script:
-  - cd frontend && nix-shell --run "npm i" -j 8
-  - nix-shell --run "elm package install -y"
+  - pushd frontend
+  - nix-shell --run "npm i && elm package install -y" -j 8
+  - popd
   - nix-build
