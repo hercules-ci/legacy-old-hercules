@@ -1,12 +1,18 @@
 language: nix
-
 cache:
   directories:
-    - frontend/elm-stuff
-    - frontend/node_modules
-
+  - frontend/elm-stuff
+  - frontend/node_modules
 script:
-  - pushd frontend
-  - nix-shell --run "npm i && elm package install -y" -j 8
-  - popd
-  - nix-build
+- pushd frontend
+- nix-shell --run "npm i && elm package install -y" -j 8
+- popd
+- nix-build
+deploy:
+  provider: s3
+  access_key_id: AKIAJETSFTAMXGNCGC6Q
+  secret_access_key:
+    secure: K9aTtJKN1N2O0ItkGGt6qWaW1n6a032zrpfWWOd85fCrDdEuTtyO85HEFNpDZO+fJVlx3F2VHcBHmgljPxFzK1WJwNvPbjd8v6DIOR8oOtPW1tXWpwecbGsd7C3yz7+LpeOmZAe9Z35zywYe7s3xxxabELV3Qsr4udbpaOhy/74uI8w6OxrQ+t8sUA4Vp0MafaVLjiKhVirvnNyiIU/VH3px4ZR7oEckyWvt089lmoU5P4hRfAw8AhPR8JhFeMF60w/r8SqOOr9SC2dRTQHvDt0W0LXX4aCXUcBaY4QHhAf1txVS75JB8Ts8Qxdjxpy19957Ktx6/eM/nb9BgZzlVF7fMWxBcApTGyQCLdBq4yJb0tgVIBY+ohGHSkbqg5Zbkfk+V1xfAe0fTikqNQH1nAE7DUYWCrMdGOMTqSm3VQS38ZAWCGlcRBMITZW6cDrCmTG9WDLF7feaio3sdXpIhKAvreClBX5FBiSJPIMCcSGA/68iB7pVNV6JKeS/+f45k7N6ib0UjsEhuXDuqLCDzg/2ovu4Y/L/psvHttmphgncdIrZZMmYdobyY2nGGA2YB4GVBzkXE8ZjMLGa2uTZJKgpPuV0Ghgbkr8PNYMdWpsY11GftQs3vmuzMao3gqEStPbrYK8iveeN8w3guX4Dm5hKcre3+Hdh5NA+TBftZjs=
+  bucket: hercules-ci
+  skip_cleanup: true
+  local_dir: result-2
