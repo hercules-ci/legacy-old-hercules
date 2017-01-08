@@ -22,31 +22,12 @@ docs and the frontend.
 There should be minimal configuration to host Hercules and to
 build Nix projects.
 
-## Backend
+## Documentation
 
-### Getting started
-
-You'll need Nix installed and [Hydra database loaded into Postgresql]
-(https://github.com/peti/hydra-tutorial) for hydra user.
-
-    $ cd backend
-    $ nix-build
-    $ ./result/bin/hercules -c example-config.yaml
-
-### API
-
-The API is described in [API.hs](backend/src/Hercules/API.hs).
-
-## Frontend
-
-### Getting started
-
-Hot reloading is used for development, so you can start your development server:
-
-    $ cd frontend
-    $ nix-shell --run "npm i && npm run dev"
-
-And open your browser and point it to http://localhost:3000
+- [Introduction](http://hercules-ci.s3-website-us-west-2.amazonaws.com/)
+- [Getting started](http://hercules-ci.s3-website-us-west-2.amazonaws.com/getting-started.html)
+- [FAQ](http://hercules-ci.s3-website-us-west-2.amazonaws.com/faq.html)
+- [HTTP API](http://hercules-ci.s3-website-us-west-2.amazonaws.com/api.html)
 
 ## License
 
