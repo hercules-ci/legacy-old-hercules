@@ -7,7 +7,20 @@ Continuous Integration for Nix projects.
 Hercules uses the same DB schema as [Hydra](http://www.nixos.org/hydra/),
 but a new Haskell backend with a RESTful API and Elm as new frontend.
 
-The goal of the MVP is to run Hercules as a CI for Github.
+The goal of 1.0 milestone is to run Hercules as a CI for Github.
+
+## Background
+
+Nix needs better tooling for building, testing and deploying of Nix expressions.
+
+Hydra has gone through many iterations, but it has become big and
+hard to maintain (not many Nix developers do Perl).
+
+Hercules goes quite far by using Servant as contract between the API,
+docs and the frontend.
+
+There should be minimal configuration to host Hercules and to
+build Nix projects.
 
 ## Backend
 
@@ -36,4 +49,5 @@ Hot reloading is used for development, so you can start your development server:
 And open your browser and point it to http://localhost:3000
 
 ## License
+
 Backend ([BSD3](backend/LICENSE)) / Frontend ([BSD3](frontend/elm-package.json))
