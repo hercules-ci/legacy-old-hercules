@@ -14,12 +14,19 @@ Welcome to Hercules's documentation!
 
 .. sidebar:: Features
 
-    - 
+    - RESTful API `Haskell Servant <http://haskell-servant.readthedocs.io/en/stable/>`_
+    - Separate frontend written in `Elm <http://elm-lang.org/>`_
+    - Github integration (Authentication and Pull Requests) 
+    - Declarative configuration using a YAML file
 
 
 .. topic:: Introduction
 
-   ...
+   Continuous Integration for Nix projects.
+
+   Hercules uses the same DB schema as Hydra, but a new Haskell backend with a RESTful API and Elm as new frontend.
+   
+   The goal of the MVP is to run Hercules as a CI for Github.
 
 
 Documentation
