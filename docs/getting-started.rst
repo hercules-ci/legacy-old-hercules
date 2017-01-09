@@ -20,7 +20,7 @@ To build::
 Frontend
 ********
 
-Hot reloading is used for development, so you can start your development server:
+Hot reloading is used for development, so you can start your development server::
 
     $ cd frontend
     $ nix-shell --run "npm i && npm run dev"

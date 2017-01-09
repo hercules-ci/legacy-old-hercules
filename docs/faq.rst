@@ -38,7 +38,7 @@ Q: How is the DB provisioned without hydra?
 
 Not determined yet, there `will be a command <https://github.com/hercules-ci/hercules/issues/13>`_ eventually.
 
-Q: What does eelco think of this project, how likely is it that hydra will be replaced by it?
+Q: What does Eelco think of this project, how likely is it that hydra will be replaced by it?
 *********************************************************************************************
 
 No official word out yet. It's too soon.
