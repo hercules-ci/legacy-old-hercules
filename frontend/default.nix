@@ -5,7 +5,7 @@
 with pkgs;
 
 stdenv.mkDerivation {
- name = "hydra-frontend";
+ name = "hercules-frontend";
 
  src = ./.;
 
