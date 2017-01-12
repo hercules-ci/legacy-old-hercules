@@ -22,6 +22,12 @@ docs and the frontend.
 There should be minimal configuration to host Hercules and to
 build Nix projects.
 
+## Status
+
+Very WIP - not usable yet. See [#11](https://github.com/hercules-ci/hercules/issues/5) for progress report.
+
+[![Status](https://cloud.githubusercontent.com/assets/126339/21887274/9b0eabd4-d8bf-11e6-9aeb-5f87f54e002c.png)
+
 ## Documentation
 
 - [Introduction](http://hercules-ci.s3-website-us-west-2.amazonaws.com/)
