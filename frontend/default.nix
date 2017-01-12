@@ -18,7 +18,7 @@ stdenv.mkDerivation {
  # https://github.com/NixHercules/hercules/issues/3
  buildHercules = "${backend}/bin/gen-elm src ${backendURL} && sed -i \"s@'@@g\" src/Hercules.elm";
 
- HERCULES_URL = backendURL;
+ BACKEND_URL = backendURL;
 
  buildPhase = ''
    npm run build

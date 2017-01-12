@@ -30,7 +30,7 @@ module.exports = {
   },
 
   plugins: [
-    new webpack.EnvironmentPlugin(["HERCULES_URL"])
+    new webpack.EnvironmentPlugin(["BACKEND_URL"])
   ],
 
   devServer: {

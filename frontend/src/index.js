@@ -4,9 +4,9 @@
 require('./index.html');
 
 var app = require('./Main.elm').Main.fullscreen({
-  herculesURL: process.env.HERCULES_URL
+  backendURL: process.env.BACKEND_URL
 });
 
 app.ports.title.subscribe(function(title) {
-  document.title = "Hydra - " + title;
+  document.title = "Hercules - " + title;
 });
