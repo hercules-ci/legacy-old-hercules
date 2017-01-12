@@ -9,7 +9,7 @@ stdenv.mkDerivation {
 
   src = ./.;
 
-  buildInputs = [ python3Packages.sphinx ];
+  buildInputs = [ python3Packages.sphinx python3Packages.sphinx_rtd_theme ];
 
   preBuild = ''
     ${backend}/bin/gen-docs
