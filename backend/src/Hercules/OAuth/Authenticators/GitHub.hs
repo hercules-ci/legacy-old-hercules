@@ -70,14 +70,14 @@ githubGetUserInfo token = do
 findOrCreateUser :: GitHubUser -> App (Either Text UserId)
 findOrCreateUser user = do
   let textId = pack . show . gid $ user
-  runHerculesQueryWithConnection (userIdQuery textId) >>= \case
+  runHerculesQueryWithConnection (userGitHubIdQuery textId) >>= \case
     []  -> createUser user
     [u] -> pure $ Right (UserId (userId (u :: User)))
     _   -> pure $ Left "Multiple users with the same id in database!"
 
 createUser :: GitHubUser -> App (Either Text UserId)
 createUser GitHubUser{..} = do
-  let user = User () gname gemail (pack . show $ gid)
+  let user = User () gname gemail (pack . show $ gid) undefined
   withHerculesConnection (\c -> insertUser c user) >>= \case
     Nothing -> pure $ Left "Error inserting user"
     Just i -> pure $ Right i

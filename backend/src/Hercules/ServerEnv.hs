@@ -1,4 +1,6 @@
 {-# LANGUAGE FlexibleContexts           #-}
+{-# LANGUAGE OverloadedStrings           #-}
+{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE StrictData                 #-}
@@ -9,6 +11,7 @@ module Hercules.ServerEnv
   , runApp
   , newEnv
   , runHerculesQueryWithConnection
+  , runHerculesQueryWithConnectionSingular
   , runHydraQueryWithConnection
   , withHerculesConnection
   , withHttpManager
@@ -43,7 +46,7 @@ import Hercules.OAuth.Types (AuthenticatorName, OAuth2Authenticator,
                              PackedJWT (..), authenticatorName)
 import Hercules.OAuth.User
 
-{-# ANN module "HLint: ignore Avoid lambda" #-}
+{-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 
 data Env = Env { envHerculesConnectionPool :: Pool Connection
                , envHydraConnectionPool :: Pool Connection
@@ -100,6 +103,20 @@ runHerculesQueryWithConnection
 runHerculesQueryWithConnection q = do
   logQuery q
   withHerculesConnection (\c -> runQuery c q)
+
+-- | Evaluate a query in an 'App' value returning a singular result 
+runHerculesQueryWithConnectionSingular
+  :: Default QueryRunner columns haskells
+  => Default Unpackspec columns columns =>
+     Query columns -> App (Maybe haskells)
+runHerculesQueryWithConnectionSingular q =
+  runHerculesQueryWithConnection q >>=
+  \case
+    []  -> pure Nothing
+    [x] -> pure $ Just x
+    _   -> do
+      logError "Singular query returned multiple results"
+      pure Nothing
 
 -- | Evaluate a query in an 'App' value
 runHydraQueryWithConnection

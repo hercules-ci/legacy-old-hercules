@@ -42,6 +42,9 @@ library
                      , async
                      , blaze-html
                      , bytestring
+                     , dbrecord
+                     , dbrecord-opaleye
+                     , github
                      , hoauth2
                      , http-client
                      , http-client-tls
