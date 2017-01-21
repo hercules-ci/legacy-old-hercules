@@ -42,6 +42,7 @@ library
                      , async
                      , blaze-html
                      , bytestring
+                     , github
                      , hoauth2
                      , http-client
                      , http-client-tls

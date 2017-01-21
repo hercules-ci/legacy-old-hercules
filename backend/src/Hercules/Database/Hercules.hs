@@ -5,6 +5,7 @@
 
 module Hercules.Database.Hercules where
 
+import Data.ByteString
 import Data.Profunctor
 import Data.Profunctor.Product
 import Data.Profunctor.Product.Default
@@ -40,23 +41,24 @@ fromNullable = unToMaybe def
 
 ---- Types for table: users ----
 
-data User' c1 c2 c3 c4 =
+data User' c1 c2 c3 c4 c5 =
   User
-    { userId       :: c1
-    , userName     :: c2
-    , userEmail    :: c3
-    , userGithubId :: c4
+    { userId          :: c1
+    , userName        :: c2
+    , userEmail       :: c3
+    , userGithubId    :: c4
+    , userGithubToken :: c5
     }
 
-type User = User' Int64 (Maybe Text) (Maybe Text) (Maybe Text)
+type User = User' Int64 (Maybe Text) (Maybe Text) (Maybe Text) (Maybe ByteString)
 
-type UserReadColumns = User' (Column PGInt8) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
+type UserReadColumns = User' (Column PGInt8) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGBytea))
 
-type UserWriteColumns = User' (Maybe (Column PGInt8)) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText)))
+type UserWriteColumns = User' (Maybe (Column PGInt8)) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGText))) (Maybe (Column (Nullable PGBytea)))
 
-type UserNullableColumns = User' (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText))
+type UserNullableColumns = User' (Column (Nullable PGInt8)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGText)) (Column (Nullable PGBytea))
 
-type UserNullable = User' (Maybe Int64) (Maybe Text) (Maybe Text) (Maybe Text)
+type UserNullable = User' (Maybe Int64) (Maybe Text) (Maybe Text) (Maybe Text) (Maybe ByteString)
 
 fromNullableUser :: UserNullable -> Maybe User
 fromNullableUser = fromNullable
@@ -70,6 +72,7 @@ userTable = Table "users" (pUser
     , userName = optional "name"
     , userEmail = optional "email"
     , userGithubId = optional "github_id"
+    , userGithubToken = optional "github_token"
     }
   )
 

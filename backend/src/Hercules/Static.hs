@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE QuasiQuotes       #-}
 
@@ -8,22 +9,26 @@ module Hercules.Static
   ( welcomePage
   , loginPage
   , loggedInPage
-  , reposPage
+  , userInfoPage
   ) where
 
 
-import Control.Monad.Except.Extra
-import Data.Text
-import Network.URI
-import Servant
-import Servant.Redirect
-import Text.Blaze.Html               (Html)
-import Text.InterpolatedString.Perl6
-import Text.Markdown                 (defaultMarkdownSettings, markdown)
+import           Control.Monad.Except.Extra
+import           Data.Text
+import qualified GitHub.Endpoints.Repos        as GH
+import           Network.URI
+import           Servant
+import           Servant.Redirect
+import           Text.Blaze.Html               (Html)
+import           Text.InterpolatedString.Perl6
+import           Text.Markdown                 (defaultMarkdownSettings,
+                                                markdown)
 
+import Hercules.Database.Hercules
 import Hercules.OAuth.Authenticators
 import Hercules.OAuth.Types
 import Hercules.OAuth.User
+import Hercules.Query.Hercules
 import Hercules.ServerEnv
 
 welcomePage :: App Html
@@ -68,9 +73,18 @@ loginPage name stateString frontendURL = do
 makeState :: FrontendURL -> Maybe AuthClientState -> App AuthState
 makeState frontendURL = pure . AuthState frontendURL
 
-reposPage :: UserId -> App Html
-reposPage _ =
-  let
-  in pure $ markdown defaultMarkdownSettings [qc|
-# Users repos
+userInfoPage :: UserId -> App Html
+userInfoPage uid =
+  runHerculesQueryWithConnectionSingular (userIdQuery uid) >>= \case
+    Nothing -> pure $ noUserHtml uid
+    Just u  -> reposHtml u
+
+reposHtml :: User -> App Html
+reposHtml user = do
+  GH.currentUserRepos
+  undefined
+
+noUserHtml :: UserId -> Html
+noUserHtml uid = markdown defaultMarkdownSettings [qc|
+No user with id `{uid}`
 |]
