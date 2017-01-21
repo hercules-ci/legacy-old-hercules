@@ -1,8 +1,9 @@
 {-# LANGUAGE FlexibleContexts           #-}
-{-# LANGUAGE OverloadedStrings           #-}
-{-# LANGUAGE LambdaCase           #-}
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
+{-# LANGUAGE LambdaCase                 #-}
+{-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
+{-# LANGUAGE ScopedTypeVariables        #-}
 {-# LANGUAGE StrictData                 #-}
 
 module Hercules.ServerEnv
@@ -28,6 +29,7 @@ import Data.List                       (find)
 import Data.Maybe                      (fromMaybe)
 import Data.Pool
 import Data.Profunctor.Product.Default (Default)
+import Data.Semigroup
 import Data.String                     (fromString)
 import Data.Text.Encoding              (encodeUtf8)
 import Data.Time.Format
@@ -36,24 +38,25 @@ import Network.HTTP.Client             as HTTP
 import Network.HTTP.Client.TLS
 import Opaleye                         (Query, QueryRunner, Unpackspec,
                                         runQuery, showSql)
+import Say
 import Servant                         (ServantErr)
 import Servant.Auth.Server             (JWTSettings, defaultJWTSettings,
                                         generateKey, makeJWT)
 
-import Hercules.Database.Hercules.Ready
 import Hercules.Config
+import Hercules.Database.Hercules.Ready
 import Hercules.Log
-import Hercules.OAuth.Types (AuthenticatorName, OAuth2Authenticator,
-                             PackedJWT (..), authenticatorName)
+import Hercules.OAuth.Types             (AuthenticatorName, OAuth2Authenticator,
+                                         PackedJWT (..), authenticatorName)
 import Hercules.OAuth.User
 
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 
 data Env = Env { envHerculesConnectionPool :: Pool Connection
-               , envHydraConnectionPool :: Pool Connection
-               , envHttpManager    :: HTTP.Manager
-               , envAuthenticators :: [OAuth2Authenticator App]
-               , envJWTSettings    :: JWTSettings
+               , envHydraConnectionPool    :: Pool Connection
+               , envHttpManager            :: HTTP.Manager
+               , envAuthenticators         :: [OAuth2Authenticator App]
+               , envJWTSettings            :: JWTSettings
                }
 
 newtype App a = App
@@ -157,7 +160,7 @@ getHerculesConnection Config{..} = liftIO $ do
     4 10 4
   withResource herculesConnection (readyDatabase Quiet) >>= \case
     MigrationError s -> do
-      putStrLn ("Error migrating hercules database: " ++ s)
+      sayErr ("Error migrating hercules database: " <> s)
       pure Nothing
     MigrationSuccess -> pure (Just herculesConnection)
 

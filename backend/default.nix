@@ -27,6 +27,12 @@ let
 
           postgresql-simple-migration = overrideAttrs super.postgresql-simple-migration {
             jailbreak = true;
+            src = pkgs.fetchFromGitHub {
+              owner = "ameingast";
+              repo = "postgresql-simple-migration";
+              rev = "177b54950aa0e65f499450224794851fdbc37240";
+              sha256 = "0q46gpjkwdv1kpx8wa4i3q3x4gsh7cy80a5bvk0b1dd6g11l2d3k";
+            };
           };
 
           servant-auth = self.callPackage (

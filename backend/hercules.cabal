@@ -62,6 +62,7 @@ library
                      , profunctors
                      , resource-pool
                      , safe
+                     , say
                      , servant-auth-server
                      , servant-blaze
                      , servant-elm

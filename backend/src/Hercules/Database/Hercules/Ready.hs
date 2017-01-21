@@ -8,13 +8,17 @@ module Hercules.Database.Hercules.Ready
   ) where
 
 import Data.FileEmbed
+import Data.Text
 import Database.PostgreSQL.Simple           (Connection, withTransaction)
 import Database.PostgreSQL.Simple.Migration
 
 -- | Prepare the database for Hercules use
-readyDatabase :: Verbosity -> Connection -> IO (MigrationResult String)
+readyDatabase :: Verbosity -> Connection -> IO (MigrationResult Text)
 readyDatabase verbosity con =
-  withTransaction con $ runMigrations (verbosityToBool verbosity) con migrations
+  fmap (fmap pack)
+  . withTransaction con
+  . runMigrations (verbosityToBool verbosity) con
+  $ migrations
 
 -- | Run a series of migrations
 runMigrations
