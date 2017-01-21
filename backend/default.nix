@@ -6,6 +6,12 @@ let
       let overrideAttrs = package: newAttrs: package.override (args: args // {
               mkDerivation = expr: args.mkDerivation (expr // newAttrs);
             });
+          servant-auth-src = pkgs.fetchFromGitHub {
+            owner = "plow-technologies";
+            repo = "servant-auth";
+            rev = "e37c78c153048f0e0a8518645aa76a34d2d408b4";
+            sha256 = "16c6n36wawz25q3kzfs1lq5wp0aj9vdz2algnfpc3rdpg36ynwwx";
+          };
 
       in self: super: {
           servant-pandoc = overrideAttrs super.servant-pandoc {
@@ -14,6 +20,20 @@ let
           cases = overrideAttrs super.cases {
             jailbreak = true;
           };
+
+          pandoc = overrideAttrs super.pandoc {
+            jailbreak = true;
+          };
+
+          servant-auth = self.callPackage (
+            haskellPackageGen { doFilter = false; }
+                              (servant-auth-src + "/servant-auth")
+          ) {};
+
+          servant-auth-server = self.callPackage (
+            haskellPackageGen { doFilter = false; }
+                              (servant-auth-src + "/servant-auth-server")
+          ) {};
 
           servant-elm = overrideAttrs super.servant-elm {
             version = "2016-11-08";
@@ -28,6 +48,7 @@ let
             ];
             doCheck = false;
           };
+
           #
           # New versions for servant-elm
           #
@@ -52,6 +73,7 @@ let
               }
             )
           ) {};
+
           #
           # New versions for opaleye-gen
           #
@@ -63,6 +85,11 @@ let
               sha256 = "0qchq0hky05w52wpz1b6rp3y7k6z3rs16kpab175j28nqf6h47f3";
             };
           };
+
+          #
+          # new versions for servant-auth-server
+          #
+          jose = super.jose_0_5_0_2;
         };
       };
 
