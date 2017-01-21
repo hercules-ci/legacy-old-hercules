@@ -20,6 +20,7 @@ library
                        Hercules.Config
                        Hercules.Database.Extra
                        Hercules.Database.Hercules
+                       Hercules.Database.Hercules.Ready
                        Hercules.Database.Hydra
                        Hercules.OAuth
                        Hercules.OAuth.Authenticators
@@ -42,6 +43,7 @@ library
                      , async
                      , blaze-html
                      , bytestring
+                     , file-embed
                      , github
                      , hoauth2
                      , http-client
@@ -55,6 +57,7 @@ library
                      , network-uri
                      , opaleye
                      , postgresql-simple
+                     , postgresql-simple-migration
                      , product-profunctors
                      , profunctors
                      , resource-pool

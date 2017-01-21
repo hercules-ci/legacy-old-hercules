@@ -41,10 +41,12 @@ startApp config = do
   let authenticators = configAuthenticatorList config
       port = configPort config
       logging = loggingMiddleware config
-  env <- newEnv config authenticators
-  T.putStrLn $ "Serving on http://" <> configHostname config
-               <> ":" <> (pack . show $ port)
-  run port . logging =<< app env
+  newEnv config authenticators >>= \case
+    Nothing -> pure ()
+    Just env -> do
+      T.putStrLn $ "Serving on http://" <> configHostname config
+                   <> ":" <> (pack . show $ port)
+      run port . logging =<< app env
 
 loggingMiddleware :: Config -> Middleware
 loggingMiddleware config = case configAccessLogLevel config of
@@ -66,7 +68,7 @@ server env = enter (Nat (runApp env)) api
                 :<|> (mandatory1 .: loginPage)
                 :<|> (mandatory1 .∵ authCallback)
                 :<|> loggedInPage
-                :<|> (join . withAuthenticated reposPage)
+                :<|> (join . withAuthenticated userInfoPage)
         queryApi = unprotected :<|> protected
         unprotected = getProjectNames
                       :<|> getProjects

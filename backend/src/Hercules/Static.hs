@@ -80,9 +80,7 @@ userInfoPage uid =
     Just u  -> reposHtml u
 
 reposHtml :: User -> App Html
-reposHtml user = do
-  GH.currentUserRepos
-  undefined
+reposHtml _user = undefined
 
 noUserHtml :: UserId -> Html
 noUserHtml uid = markdown defaultMarkdownSettings [qc|

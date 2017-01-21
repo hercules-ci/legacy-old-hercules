@@ -40,6 +40,7 @@ import Servant                         (ServantErr)
 import Servant.Auth.Server             (JWTSettings, defaultJWTSettings,
                                         generateKey, makeJWT)
 
+import Hercules.Database.Hercules.Ready
 import Hercules.Config
 import Hercules.Log
 import Hercules.OAuth.Types (AuthenticatorName, OAuth2Authenticator,
@@ -146,22 +147,33 @@ runApp env = mapExceptT runLog
     printMessage = print . renderWithTimestamp renderTime (renderWithSeverity render)
     renderTime = formatTime defaultTimeLocale "%b %_d %H:%M:%S"
 
-newEnv :: MonadIO m => Config -> [OAuth2Authenticator App] -> m Env
-newEnv Config{..} authenticators = liftIO $ do
-  hydraConnection <- createPool
-    (connectPostgreSQL (encodeUtf8 configHydraConnectionString))
-    close
-    4 10 4
+getHerculesConnection :: MonadIO m => Config -> m (Maybe (Pool Connection))
+getHerculesConnection Config{..} = liftIO $ do
   herculesConnection <- createPool
     (connectPostgreSQL (encodeUtf8 configHerculesConnectionString))
     close
     4 10 4
-  httpManager <- newManager tlsManagerSettings
-  key <- liftIO generateKey
-  let jwtSettings = defaultJWTSettings key
-  pure $ Env
-    herculesConnection
-    hydraConnection
-    httpManager
-    authenticators
-    jwtSettings
+  withResource herculesConnection (readyDatabase Quiet) >>= \case
+    MigrationError s -> do
+      putStrLn ("Error migrating hercules database: " ++ s)
+      pure Nothing
+    MigrationSuccess -> pure (Just herculesConnection)
+
+newEnv :: MonadIO m => Config -> [OAuth2Authenticator App] -> m (Maybe Env)
+newEnv c@Config{..} authenticators =
+  getHerculesConnection c >>= \case
+    Nothing -> pure Nothing
+    Just herculesConnection -> fmap Just . liftIO $ do
+      hydraConnection <- createPool
+        (connectPostgreSQL (encodeUtf8 configHydraConnectionString))
+        close
+        4 10 4
+      httpManager <- newManager tlsManagerSettings
+      key <- liftIO generateKey
+      let jwtSettings = defaultJWTSettings key
+      pure $ Env
+        herculesConnection
+        hydraConnection
+        httpManager
+        authenticators
+        jwtSettings
