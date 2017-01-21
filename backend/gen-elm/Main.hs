@@ -40,6 +40,7 @@ spec elmexportoptions = Spec ["Hercules"]
             )
 
 -- Generate Authorization header for Elm protected URLs
+-- https://github.com/plow-technologies/servant-auth/issues/8
 instance forall lang ftype api auths a.
     ( HasForeign lang ftype api
     , HasForeignType lang ftype Text
