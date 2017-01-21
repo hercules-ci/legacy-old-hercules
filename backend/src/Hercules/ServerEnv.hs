@@ -147,6 +147,8 @@ runApp env = mapExceptT runLog
     printMessage = print . renderWithTimestamp renderTime (renderWithSeverity render)
     renderTime = formatTime defaultTimeLocale "%b %_d %H:%M:%S"
 
+-- | Get a pool of connections to the Hercules database. Return 'Nothing' if the
+-- schema can't be updated to the correct one.
 getHerculesConnection :: MonadIO m => Config -> m (Maybe (Pool Connection))
 getHerculesConnection Config{..} = liftIO $ do
   herculesConnection <- createPool
