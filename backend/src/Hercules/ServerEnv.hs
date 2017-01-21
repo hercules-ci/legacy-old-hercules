@@ -10,6 +10,7 @@ module Hercules.ServerEnv
   ( Env(..)
   , App(..)
   , runApp
+  , runAppWithConfig
   , newEnv
   , runHerculesQueryWithConnection
   , runHerculesQueryWithConnectionSingular
@@ -23,7 +24,11 @@ module Hercules.ServerEnv
 import Control.Monad.Except.Extra
 import Control.Monad.Log
 import Control.Monad.Reader
+import Crypto.Cipher.AES
+import Crypto.Cipher.Types
+import Crypto.Error
 import Crypto.JOSE.Error
+import Data.ByteString.Extra           (readFileMaybe)
 import Data.ByteString.Lazy            (toStrict)
 import Data.List                       (find)
 import Data.Maybe                      (fromMaybe)
@@ -31,8 +36,10 @@ import Data.Pool
 import Data.Profunctor.Product.Default (Default)
 import Data.Semigroup
 import Data.String                     (fromString)
+import Data.Text                       (pack)
 import Data.Text.Encoding              (encodeUtf8)
 import Data.Time.Format
+import Data.Yaml
 import Database.PostgreSQL.Simple      (Connection, close, connectPostgreSQL)
 import Network.HTTP.Client             as HTTP
 import Network.HTTP.Client.TLS
@@ -57,6 +64,7 @@ data Env = Env { envHerculesConnectionPool :: Pool Connection
                , envHttpManager            :: HTTP.Manager
                , envAuthenticators         :: [OAuth2Authenticator App]
                , envJWTSettings            :: JWTSettings
+               , envCipher                 :: AES256
                }
 
 newtype App a = App
@@ -164,11 +172,24 @@ getHerculesConnection Config{..} = liftIO $ do
       pure Nothing
     MigrationSuccess -> pure (Just herculesConnection)
 
+-- | Load the key from the secret key file
+getCipher :: MonadIO m => Config -> m (Maybe AES256)
+getCipher Config{..} = liftIO $
+  readFileMaybe configSecretKeyFile >>= \case
+    Nothing -> do
+      sayErr ("Unable to open secret key file: " <> pack configSecretKeyFile)
+      pure Nothing
+    Just key -> case cipherInit key of
+      CryptoFailed e -> do
+        sayErr ("Unable to create cipher" <> pack (show e))
+        pure Nothing
+      CryptoPassed cipher -> pure (Just cipher)
+
 newEnv :: MonadIO m => Config -> [OAuth2Authenticator App] -> m (Maybe Env)
 newEnv c@Config{..} authenticators =
   getHerculesConnection c >>= \case
     Nothing -> pure Nothing
-    Just herculesConnection -> fmap Just . liftIO $ do
+    Just herculesConnection -> liftIO $ do
       hydraConnection <- createPool
         (connectPostgreSQL (encodeUtf8 configHydraConnectionString))
         close
@@ -176,9 +197,27 @@ newEnv c@Config{..} authenticators =
       httpManager <- newManager tlsManagerSettings
       key <- liftIO generateKey
       let jwtSettings = defaultJWTSettings key
-      pure $ Env
-        herculesConnection
-        hydraConnection
-        httpManager
-        authenticators
-        jwtSettings
+      getCipher c >>= \case
+        Nothing -> pure Nothing
+        Just cipher ->
+          pure . Just $ Env
+            herculesConnection
+            hydraConnection
+            httpManager
+            authenticators
+            jwtSettings
+            cipher
+
+-- | Load a yaml configuration and run an 'App' value, useful for testing in
+-- the REPL.
+runAppWithConfig :: FilePath -> App a -> IO a
+runAppWithConfig yaml m =
+  decodeFileEither yaml >>= \case
+    Left err -> error (prettyPrintParseException err)
+    Right config ->
+      newEnv config [] >>= \case
+        Nothing -> error "Can't create env"
+        Just env ->
+          runExceptT (runApp env m) >>= \case
+            Left err -> error (show err)
+            Right x -> pure x

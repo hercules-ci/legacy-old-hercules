@@ -31,6 +31,7 @@ instance FromJSON AccessLogLevel
 data Config = Config { configPort                     :: Port
                      , configHostname                 :: HostName
                      , configAccessLogLevel           :: AccessLogLevel
+                     , configSecretKeyFile            :: FilePath
                      , configHerculesConnectionString :: Text
                      , configHydraConnectionString    :: Text
                      , configGoogleAuthInfo           :: Maybe AuthClientInfo
