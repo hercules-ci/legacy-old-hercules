@@ -51,10 +51,11 @@ import Servant.Auth.Server             (JWTSettings, defaultJWTSettings,
                                         generateKey, makeJWT)
 
 import Hercules.Config
-import Hercules.Database.Hercules.Ready
+import Hercules.Database.Hercules.Migration
 import Hercules.Log
-import Hercules.OAuth.Types             (AuthenticatorName, OAuth2Authenticator,
-                                         PackedJWT (..), authenticatorName)
+import Hercules.OAuth.Types                 (AuthenticatorName,
+                                             OAuth2Authenticator,
+                                             PackedJWT (..), authenticatorName)
 import Hercules.OAuth.User
 
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}

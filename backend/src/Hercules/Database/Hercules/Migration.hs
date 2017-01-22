@@ -1,7 +1,7 @@
 {-# LANGUAGE LambdaCase      #-}
 {-# LANGUAGE TemplateHaskell #-}
 
-module Hercules.Database.Hercules.Ready
+module Hercules.Database.Hercules.Migration
   ( readyDatabase
   , MigrationResult(..)
   , Verbosity(..)

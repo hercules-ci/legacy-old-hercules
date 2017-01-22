@@ -22,7 +22,7 @@ library
                        Hercules.Config
                        Hercules.Database.Extra
                        Hercules.Database.Hercules
-                       Hercules.Database.Hercules.Ready
+                       Hercules.Database.Hercules.Migration
                        Hercules.Database.Hydra
                        Hercules.Encryption
                        Hercules.Log
