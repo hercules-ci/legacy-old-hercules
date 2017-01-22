@@ -88,7 +88,7 @@ userInfoPage uid =
 
 reposHtml :: User -> App Html
 reposHtml User{..} = do
-  logInfo (LogString ("Showing repos to " <> fromMaybe "unnamed user" userName))
+  logInfo (LogString ("Showing repos for " <> fromMaybe "unnamed user" userName))
   case userGithubToken of
     Nothing ->
       pure $ markdown defaultMarkdownSettings [qc|
