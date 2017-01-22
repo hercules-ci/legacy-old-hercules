@@ -6,17 +6,12 @@ let
       let overrideAttrs = package: newAttrs: package.override (args: args // {
               mkDerivation = expr: args.mkDerivation (expr // newAttrs);
             });
-          servant-auth-src = pkgs.fetchFromGitHub {
-            owner = "plow-technologies";
-            repo = "servant-auth";
-            rev = "e37c78c153048f0e0a8518645aa76a34d2d408b4";
-            sha256 = "16c6n36wawz25q3kzfs1lq5wp0aj9vdz2algnfpc3rdpg36ynwwx";
-          };
 
       in self: super: {
           servant-pandoc = overrideAttrs super.servant-pandoc {
             jailbreak = true;
           };
+
           cases = overrideAttrs super.cases {
             jailbreak = true;
           };
@@ -34,16 +29,6 @@ let
               sha256 = "0q46gpjkwdv1kpx8wa4i3q3x4gsh7cy80a5bvk0b1dd6g11l2d3k";
             };
           };
-
-          servant-auth = self.callPackage (
-            haskellPackageGen { doFilter = false; }
-                              (servant-auth-src + "/servant-auth")
-          ) {};
-
-          servant-auth-server = self.callPackage (
-            haskellPackageGen { doFilter = false; }
-                              (servant-auth-src + "/servant-auth-server")
-          ) {};
 
           servant-elm = overrideAttrs super.servant-elm {
             version = "2016-11-08";
