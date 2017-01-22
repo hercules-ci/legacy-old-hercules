@@ -81,10 +81,6 @@ let
             };
           };
 
-          #
-          # new versions for servant-auth-server
-          #
-          jose = super.jose_0_5_0_2;
         };
       };
 
