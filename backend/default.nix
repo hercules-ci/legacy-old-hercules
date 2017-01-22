@@ -80,7 +80,6 @@ let
               sha256 = "0qchq0hky05w52wpz1b6rp3y7k6z3rs16kpab175j28nqf6h47f3";
             };
           };
-
         };
       };
 
