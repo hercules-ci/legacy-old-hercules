@@ -1,3 +1,4 @@
+{-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE TemplateHaskell   #-}
 {-# OPTIONS_GHC -fno-warn-unused-top-binds #-}
@@ -10,6 +11,7 @@ module Hercules.OAuth.Authenticators.Google
   ) where
 
 import Control.Concurrent.Async (concurrently)
+import Control.Monad.Except
 import Data.Aeson.TH
 import Data.Maybe               (fromJust)
 import Data.Text
@@ -69,7 +71,7 @@ googleAccessTokenEndpoint = AccessTokenEndpoint . fromJust . parseURI $ "https:/
 googleScopeEmail :: QueryParams
 googleScopeEmail = [("scope", "https://www.googleapis.com/auth/userinfo.email")]
 
-googleGetUserInfo :: AuthClientInfo -> AccessToken -> App (Either Text User)
+googleGetUserInfo :: AuthClientInfo -> AccessToken -> App (Either Text UserId)
 googleGetUserInfo clientInfo token = do
   (tokenInfo', userInfo') <-
     withHttpManager (\m -> concurrently (validateToken m token)
@@ -77,16 +79,12 @@ googleGetUserInfo clientInfo token = do
 
   let ourClientId = decodeUtf8 $ authClientInfoId clientInfo
 
-  case tokenInfo' of
-    Left _err -> pure $ Left "Error getting token info"
-    Right tokenInfo -> case userInfo' of
-      Left _err -> pure $ Left "Error getting user info"
-      Right userInfo -> pure $
-        -- Check that the token is valid and matches our client. This is important to
-        -- avoid the "confused deputy issue".
-        if audience tokenInfo /= ourClientId
-          then Left "Client id didn't match"
-          else Right (User (Email (email userInfo)))
+  pure $ do
+    tokenInfo <- failWith (const "Error getting token info") tokenInfo'
+    _userInfo  <- failWith (const "Error getting user info") userInfo'
+    when (audience tokenInfo /= ourClientId) $
+      throwError "Client id didn't match"
+    Right (UserId 0) -- TODO fix
 
 validateToken :: Manager -> AccessToken -> IO (OAuth2Result GoogleToken)
 validateToken manager token = parseResponseJSON <$> authGetBS' manager token uri
@@ -95,3 +93,8 @@ validateToken manager token = parseResponseJSON <$> authGetBS' manager token uri
 getUserInfo :: Manager -> AccessToken -> IO (OAuth2Result GoogleUser)
 getUserInfo manager token =
   authGetJSON manager token "https://www.googleapis.com/oauth2/v2/userinfo"
+
+failWith :: MonadError e m => (e' -> e) -> Either e' a -> m a
+failWith f = \case
+  Left e  -> throwError (f e)
+  Right x -> pure x

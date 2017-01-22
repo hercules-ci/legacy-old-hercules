@@ -1,7 +1,7 @@
 { pkgs ? (import ./../pkgs.nix) {} }:
 
 let
-  haskellPackages = pkgs.haskell.packages.ghc801.override{
+  haskellPackages = pkgs.haskell.packages.ghc802.override{
     overrides =
       let overrideAttrs = package: newAttrs: package.override (args: args // {
               mkDerivation = expr: args.mkDerivation (expr // newAttrs);
@@ -11,8 +11,23 @@ let
           servant-pandoc = overrideAttrs super.servant-pandoc {
             jailbreak = true;
           };
+
           cases = overrideAttrs super.cases {
             jailbreak = true;
+          };
+
+          pandoc = overrideAttrs super.pandoc {
+            jailbreak = true;
+          };
+
+          postgresql-simple-migration = overrideAttrs super.postgresql-simple-migration {
+            jailbreak = true;
+            src = pkgs.fetchFromGitHub {
+              owner = "ameingast";
+              repo = "postgresql-simple-migration";
+              rev = "177b54950aa0e65f499450224794851fdbc37240";
+              sha256 = "0q46gpjkwdv1kpx8wa4i3q3x4gsh7cy80a5bvk0b1dd6g11l2d3k";
+            };
           };
 
           servant-elm = overrideAttrs super.servant-elm {
@@ -28,6 +43,7 @@ let
             ];
             doCheck = false;
           };
+
           #
           # New versions for servant-elm
           #
@@ -52,6 +68,7 @@ let
               }
             )
           ) {};
+
           #
           # New versions for opaleye-gen
           #
@@ -69,7 +86,7 @@ let
   haskellPackageGen = { doHaddock ? false, doFilter ? true }: src:
     let filteredSrc = builtins.filterSource (n: t: t != "unknown") src;
         package = pkgs.runCommand "default.nix" {} ''
-          ${pkgs.haskell.packages.ghc801.cabal2nix}/bin/cabal2nix \
+          ${pkgs.haskell.packages.ghc802.cabal2nix}/bin/cabal2nix \
             ${if doFilter then filteredSrc else src} \
             ${if doHaddock
                 then ""
