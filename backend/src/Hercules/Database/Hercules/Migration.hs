@@ -20,28 +20,6 @@ readyDatabase verbosity con =
   . runMigrations (verbosityToBool verbosity) con
   $ migrations
 
--- | Run a series of migrations
-runMigrations
-  :: Bool
-     -- ^ Run in verbose mode
-  -> Connection
-     -- ^ The postgres connection to use
-  -> [MigrationCommand]
-     -- ^ The commands to run
-  -> IO (MigrationResult String)
-runMigrations verbose con commands =
-  sequenceContexts [MigrationContext c verbose con | c <- commands]
-
--- | Run a sequence of contexts, stopping on the first failure
-sequenceContexts :: [MigrationContext] -> IO (MigrationResult String)
-sequenceContexts = \case
-  []   -> pure MigrationSuccess
-  c:cs -> do
-    r <- runMigration c
-    case r of
-      MigrationError s -> pure (MigrationError s)
-      MigrationSuccess -> sequenceContexts cs
-
 data Verbosity = Verbose | Quiet
 
 verbosityToBool :: Verbosity -> Bool
