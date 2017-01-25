@@ -25,8 +25,8 @@ let
             src = pkgs.fetchFromGitHub {
               owner = "ameingast";
               repo = "postgresql-simple-migration";
-              rev = "d2713e70b87ec754281c7140e0b6352d9a75e1c9";
-              sha256 = "1x6bj95gxr0j6ywip7nyykr6aqb497995ij4ldfpa08dzq64m2gz";
+              rev = "5acb8fd57de13953fb665609b56845aadff37ea3";
+              sha256 = "0wjlf8d3airlmdaalrfrmdaqm2r4diz55f76rh3i7xi9296cgc9h";
             };
           };
 
