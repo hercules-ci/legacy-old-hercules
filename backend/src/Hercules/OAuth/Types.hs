@@ -120,7 +120,7 @@ data OAuth2Authenticator m = OAuth2Authenticator
   { authenticatorName            :: AuthenticatorName
   , authenticatorConfig          :: OAuth2
   , authenticatorAuthQueryParams :: QueryParams
-  , authenticatorGetUserInfo     :: AccessToken -> m (Either Text User)
+  , authenticatorGetUserInfo     :: AccessToken -> m (Either Text UserId)
   }
 
 -- | Construct an 'OAuth2Authenticator'
@@ -134,7 +134,7 @@ makeAuthenticator
   -> OAuthEndpoint
   -> AccessTokenEndpoint
   -> AuthClientInfo
-  -> (AccessToken -> m (Either Text User))
+  -> (AccessToken -> m (Either Text UserId))
   -> OAuth2Authenticator m
 makeAuthenticator makeCallback name queryParams
                   authEndpoint accessTokenEndpoint AuthClientInfo{..}

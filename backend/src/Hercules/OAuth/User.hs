@@ -6,29 +6,19 @@ This module describes a data type and functions for dealing with authenticated
 users.
 -}
 module Hercules.OAuth.User
-  ( User(..)
-  , Email(..)
+  ( UserId(..)
   ) where
 
 import Data.Aeson
-import Data.Text
+import Data.Int
 import GHC.Generics        (Generic)
 import Servant.Auth.Server
 
-data User = User
-  { userEmail :: Email }
-  deriving(Generic)
+newtype UserId = UserId
+  { unUserId :: Int64 }
+  deriving(Show, Generic)
 
-instance ToJSON User
-instance ToJWT User
-instance FromJSON User
-instance FromJWT User
-
-newtype Email = Email
-  { unEmail :: Text }
-  deriving(Generic)
-
-instance ToJSON Email
-instance ToJWT Email
-instance FromJSON Email
-instance FromJWT Email
+instance ToJSON UserId
+instance ToJWT UserId
+instance FromJSON UserId
+instance FromJWT UserId

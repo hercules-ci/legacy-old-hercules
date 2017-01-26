@@ -4,7 +4,7 @@
 {-# LANGUAGE MultiParamTypeClasses #-}
 {-# LANGUAGE TemplateHaskell       #-}
 
-module Hercules.Database where
+module Hercules.Database.Hydra where
 
 import           Data.Aeson
 import qualified Data.Aeson                      as JSON

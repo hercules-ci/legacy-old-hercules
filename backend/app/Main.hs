@@ -2,9 +2,8 @@
 
 module Main where
 
-import           Control.Exception
-import qualified Data.ByteString       as BS
 import qualified Data.ByteString.Char8 as BSC
+import qualified Data.ByteString.Extra as BS
 import           Data.Foldable         (fold)
 import qualified Data.Text             as T
 import           Data.Yaml             (decodeFileEither,
@@ -29,12 +28,6 @@ getConfig = execParser options >>= \case
       exitFailure
     Right c -> pure c
   Right c -> pure c
-
--- | Catch any 'IOException's and return Nothing, otherwise the file contents
-maybeReadFile :: FilePath -> IO (Maybe BS.ByteString)
-maybeReadFile f = catch (Just <$> BS.readFile f) h
-  where h :: IOException -> IO (Maybe a)
-        h = pure . const Nothing
 
 -- | A parser for the hercules config or a filepath to load one from
 options :: ParserInfo (Either FilePath Config)
@@ -70,10 +63,23 @@ options = info (helper <*> parser) description
                             , showDefault
                             ]
                       )
-      <*> (T.pack <$> strOption (fold [ long "connection"
-                                      , short 'o'
+      <*> strOption (fold [ long "secret-key-file"
+                          , short 'k'
+                          , metavar "FILE"
+                          , help "A file containing a 256 bit key for encrypting github tokens"
+                          ]
+                    )
+      <*> (T.pack <$> strOption (fold [ long "hercules-connection"
+                                      , short 'e'
                                       , metavar "CONNECTION_STRING"
-                                      , help "postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
+                                      , help "hercules database postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
+                                      ]
+                                )
+          )
+      <*> (T.pack <$> strOption (fold [ long "hydra-connection"
+                                      , short 'y'
+                                      , metavar "CONNECTION_STRING"
+                                      , help "hydra database postgres connection string, see https://www.postgresql.org/docs/9.5/static/libpq-connect.html#LIBPQ-CONNSTRING"
                                       ]
                                 )
           )

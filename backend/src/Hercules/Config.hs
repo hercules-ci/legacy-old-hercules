@@ -28,15 +28,18 @@ data AccessLogLevel = Disabled | Enabled | Development
 
 instance FromJSON AccessLogLevel
 
-data Config = Config { configPort             :: Port
-                     , configHostname         :: HostName
-                     , configAccessLogLevel   :: AccessLogLevel
-                     , configConnectionString :: Text
-                     , configGoogleAuthInfo   :: Maybe AuthClientInfo
-                     , configGitHubAuthInfo   :: Maybe AuthClientInfo
+data Config = Config { configPort                     :: Port
+                     , configHostname                 :: HostName
+                     , configAccessLogLevel           :: AccessLogLevel
+                     , configSecretKeyFile            :: FilePath
+                     , configHerculesConnectionString :: Text
+                     , configHydraConnectionString    :: Text
+                     , configGoogleAuthInfo           :: Maybe AuthClientInfo
+                     , configGitHubAuthInfo           :: Maybe AuthClientInfo
                      }
   deriving(Read, Show)
 
+-- Derive JSON dropping 'config' and making the first character lowercase.
 deriveFromJSON defaultOptions
   { fieldLabelModifier = \s ->
       case drop (length "config") s of

@@ -11,8 +11,23 @@ let
           servant-pandoc = overrideAttrs super.servant-pandoc {
             jailbreak = true;
           };
+
           cases = overrideAttrs super.cases {
             jailbreak = true;
+          };
+
+          pandoc = overrideAttrs super.pandoc {
+            jailbreak = true;
+          };
+
+          postgresql-simple-migration = overrideAttrs super.postgresql-simple-migration {
+            jailbreak = true;
+            src = pkgs.fetchFromGitHub {
+              owner = "ameingast";
+              repo = "postgresql-simple-migration";
+              rev = "5acb8fd57de13953fb665609b56845aadff37ea3";
+              sha256 = "0wjlf8d3airlmdaalrfrmdaqm2r4diz55f76rh3i7xi9296cgc9h";
+            };
           };
 
           servant-elm = overrideAttrs super.servant-elm {
@@ -28,6 +43,7 @@ let
             ];
             doCheck = false;
           };
+
           #
           # New versions for servant-elm
           #
@@ -52,6 +68,7 @@ let
               }
             )
           ) {};
+
           #
           # New versions for opaleye-gen
           #
