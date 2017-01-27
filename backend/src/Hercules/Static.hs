@@ -39,14 +39,15 @@ import Hercules.Query.Hercules
 import Hercules.ServerEnv
 
 welcomePage :: App Html
-welcomePage =
+welcomePage = do
+  hostAndPort <- getHostAndPort
   let stateString = "my state"
       frontendURL :: Text
-      frontendURL = "http://localhost:8080/logged-in"
+      frontendURL = "http://" <> hostAndPort <> "/logged-in"
       uriGoogle, uriGitHub :: Text
       uriGoogle = [qc|/login/google?state={escapeURIString isUnescapedInURIComponent stateString}&frontendURL={frontendURL}|]
       uriGitHub = [qc|/login/github?state={escapeURIString isUnescapedInURIComponent stateString}&frontendURL={frontendURL}|]
-  in pure $ markdown defaultMarkdownSettings [qc|
+  pure $ markdown defaultMarkdownSettings [qc|
 # Login Page
 
 ## Parameters
