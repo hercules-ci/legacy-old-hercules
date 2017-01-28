@@ -19,6 +19,7 @@ module Hercules.ServerEnv
   , withHttpManager
   , getAuthenticator
   , makeUserJWT
+  , getHostAndPort
   ) where
 
 import Control.Monad.Except.Extra
@@ -36,7 +37,7 @@ import Data.Pool
 import Data.Profunctor.Product.Default (Default)
 import Data.Semigroup
 import Data.String                     (fromString)
-import Data.Text                       (pack)
+import Data.Text                       (Text, pack)
 import Data.Text.Encoding              (encodeUtf8)
 import Data.Time.Format
 import Data.Yaml
@@ -57,6 +58,7 @@ import Hercules.OAuth.Types                 (AuthenticatorName,
                                              OAuth2Authenticator,
                                              PackedJWT (..), authenticatorName)
 import Hercules.OAuth.User
+import Network.Wai.Handler.Warp             (Port)
 
 {-# ANN module ("HLint: ignore Avoid lambda" :: String) #-}
 
@@ -66,6 +68,8 @@ data Env = Env { envHerculesConnectionPool :: Pool Connection
                , envAuthenticators         :: [OAuth2Authenticator App]
                , envJWTSettings            :: JWTSettings
                , envCipher                 :: AES256
+               , envPort                   :: Port
+               , envHostname               :: HostName
                }
 
 newtype App a = App
@@ -186,6 +190,16 @@ getCipher Config{..} = liftIO $
         pure Nothing
       CryptoPassed cipher -> pure (Just cipher)
 
+-- | Get the hostname and port for this server separated by a colon
+--
+-- >>> getHostAndPort
+-- "localhost:8080"
+getHostAndPort :: App Text
+getHostAndPort = do
+  hostname <- asks envHostname
+  port <- asks envPort
+  pure $ hostname <> ":" <> (pack . show $ port)
+
 newEnv :: MonadIO m => Config -> [OAuth2Authenticator App] -> m (Maybe Env)
 newEnv c@Config{..} authenticators =
   getHerculesConnection c >>= \case
@@ -208,6 +222,8 @@ newEnv c@Config{..} authenticators =
             authenticators
             jwtSettings
             cipher
+            configPort
+            configHostname
 
 -- | Load a yaml configuration and run an 'App' value, useful for testing in
 -- the REPL.
