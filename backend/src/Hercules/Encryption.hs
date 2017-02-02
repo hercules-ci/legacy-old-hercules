@@ -43,13 +43,13 @@ decrypt bs = do
       pure $ ctrCombine cipher iv message
 
 -- | Get a new random IV
-newIV :: App (IV AES256)
+newIV :: App (IV HerculesCipher)
 newIV = do
   cipher <- asks envCipher
   makeIV' =<< liftIO (getEntropy (blockSize cipher))
 
 -- | Convert some bytes into an IV
-makeIV' :: ByteString -> App (IV AES256)
+makeIV' :: ByteString -> App (IV HerculesCipher)
 makeIV' bs = case makeIV bs of
     Nothing -> do
       logError "Unable to create IV for encryption"

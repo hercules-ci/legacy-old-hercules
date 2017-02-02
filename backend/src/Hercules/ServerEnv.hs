@@ -20,6 +20,7 @@ module Hercules.ServerEnv
   , getAuthenticator
   , makeUserJWT
   , getHostAndPort
+  , HerculesCipher
   ) where
 
 import Control.Monad.Except.Extra
@@ -29,7 +30,8 @@ import Crypto.Cipher.AES
 import Crypto.Cipher.Types
 import Crypto.Error
 import Crypto.JOSE.Error
-import Data.ByteString.Extra           (readFileMaybe)
+import Crypto.Random.Entropy
+import Data.ByteString.Extra           as BS (readFileMaybe, writeFile)
 import Data.ByteString.Lazy            (toStrict)
 import Data.List                       (find)
 import Data.Maybe                      (fromMaybe)
@@ -67,10 +69,13 @@ data Env = Env { envHerculesConnectionPool :: Pool Connection
                , envHttpManager            :: HTTP.Manager
                , envAuthenticators         :: [OAuth2Authenticator App]
                , envJWTSettings            :: JWTSettings
-               , envCipher                 :: AES256
+               , envCipher                 :: HerculesCipher
                , envPort                   :: Port
                , envHostname               :: HostName
                }
+
+-- | The cipher Hercues uses for encrypting the github access tokens
+type HerculesCipher = AES256
 
 newtype App a = App
   { unApp :: ReaderT Env (ExceptT ServantErr (LogM (WithSeverity LogMessage) IO)) a
@@ -178,17 +183,22 @@ getHerculesConnection Config{..} = liftIO $ do
     MigrationSuccess -> pure (Just herculesConnection)
 
 -- | Load the key from the secret key file
-getCipher :: MonadIO m => Config -> m (Maybe AES256)
-getCipher Config{..} = liftIO $
-  readFileMaybe configSecretKeyFile >>= \case
+getCipher :: MonadIO m => Config -> m (Maybe HerculesCipher)
+getCipher Config{..} = liftIO $ do
+  key <- readFileMaybe configSecretKeyFile >>= \case
     Nothing -> do
       sayErr ("Unable to open secret key file: " <> pack configSecretKeyFile)
+      sayErr ("Creating new key at: " <> pack configSecretKeyFile)
+      bytes <- getEntropy (blockSize (undefined :: HerculesCipher))
+      BS.writeFile configSecretKeyFile bytes
+      pure bytes
+    Just key -> pure key
+
+  case cipherInit key of
+    CryptoFailed e -> do
+      sayErr ("Unable to create cipher" <> pack (show e))
       pure Nothing
-    Just key -> case cipherInit key of
-      CryptoFailed e -> do
-        sayErr ("Unable to create cipher" <> pack (show e))
-        pure Nothing
-      CryptoPassed cipher -> pure (Just cipher)
+    CryptoPassed cipher -> pure (Just cipher)
 
 -- | Get the hostname and port for this server separated by a colon
 --
