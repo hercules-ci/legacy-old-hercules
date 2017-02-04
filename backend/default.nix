@@ -84,7 +84,10 @@ let
       };
 
   haskellPackageGen = { doHaddock ? false, doFilter ? true }: src:
-    let filteredSrc = builtins.filterSource (n: t: t != "unknown") src;
+    let filteredSrc = builtins.filterSource (path: type:
+          type != "unknown" &&
+          (baseNameOf path == "dist" -> type != "directory")
+        ) src;
         package = pkgs.runCommand "default.nix" {} ''
           ${pkgs.haskell.packages.ghc801.cabal2nix}/bin/cabal2nix \
             ${if doFilter then filteredSrc else src} \
