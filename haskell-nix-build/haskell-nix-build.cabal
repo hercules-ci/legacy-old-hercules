@@ -1,0 +1,57 @@
+name:                haskell-nix-build
+version:             0.0.0.0
+synopsis:            A small implementation on nix-build.
+description:         Please see README.md
+homepage:            https://github.com/expipiplus1/hercules#readme
+license:             BSD3
+license-file:        LICENSE
+author:              Joe Hermaszewski
+maintainer:          alcmene@monoid.al
+copyright:           2016 Joe Hermaszewski
+category:            Web
+build-type:          Simple
+extra-source-files:  default.nix shell.nix
+cabal-version:       >=1.10
+
+library
+  hs-source-dirs:      src
+  exposed-modules:     
+                       Nix.Build 
+                       Nix.Build.Line
+                       Nix.Build.Pipe
+  other-modules:
+                       Paths_haskell_nix_build
+  build-depends:       base                >= 4.7 && < 5
+                     , async
+                     , bytestring
+                     , directory
+                     , extra
+                     , filepath
+                     , mtl
+                     , optparse-applicative
+                     , pipes
+                     , say
+                     , stm
+                     , temporary
+                     , text
+                     , transformers
+                     , typed-process
+                     , unix
+  default-language:    Haskell2010
+  ghc-options:         -Wall
+
+executable hercules-build-hook
+  hs-source-dirs:      build-hook
+  main-is:             Main.hs
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  build-depends:       base
+                     , optparse-applicative
+                     , haskell-nix-build
+                     , pipes
+                     , say
+                     , text
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/hercules-ci/hercules
