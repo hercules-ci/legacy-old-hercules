@@ -40,6 +40,7 @@ spec elmexportoptions = Spec ["Hercules"]
             )
 
 -- Generate Authorization header for Elm protected URLs
+-- https://github.com/plow-technologies/servant-auth/issues/8
 instance forall lang ftype api auths a.
     ( HasForeign lang ftype api
     , HasForeignType lang ftype Text
@@ -72,5 +73,5 @@ main :: IO ()
 main = do
   elmconfig <- execParser $ info (helper <*> parser)
     (fullDesc <> progDesc "Generate types for Elm frontend")
-  let elmexportoptions = defElmOptions { elmExportOptions = elmoptions , urlPrefix = pack (elmherculesurl elmconfig) }
+  let elmexportoptions = defElmOptions { elmExportOptions = elmoptions , urlPrefix = Servant.Elm.Static $ pack (elmherculesurl elmconfig) }
   specsToDir [spec elmexportoptions] $ elmpath elmconfig

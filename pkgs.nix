@@ -1,1 +1,1 @@
-import (fetchTarball https://github.com/NixOS/nixpkgs/archive/6db593164add0146469755025908f0361ae7441e.tar.gz)
+import (fetchTarball https://github.com/NixOS/nixpkgs/archive/01ca916411fca7947be55f549ea644c9d0688e9a.tar.gz)
