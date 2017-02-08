@@ -11,7 +11,6 @@ import Control.Concurrent.Async
 import Control.Concurrent.STM
 import Control.Monad
 import Control.Monad.Except
-import Control.Monad.IO.Class
 import Control.Monad.Trans.Maybe
 import Data.ByteString.Lazy      (toStrict)
 import Data.Foldable
@@ -27,6 +26,7 @@ import System.Environment        (getEnvironment, lookupEnv)
 import System.Exit
 import System.FilePath
 import System.IO
+import System.IO.Blocking
 import System.IO.Error
 import System.IO.Temp
 import System.Posix.Files
@@ -76,8 +76,12 @@ evalutate' hook needed nix =
                     , ownerReadMode
                     , ownerWriteMode
                     ])
-    (r, _) <- concurrently (runInstantiate hook pipe nix) (servicePipe pipe needed)
-    pure r
+
+    withAsync (servicePipe pipe needed) $ \service ->
+      withAsync (runInstantiate hook pipe nix) $ \inst -> do
+        r <- wait inst
+        cancel service
+        pure r
 
 runInstantiate
   :: FilePath
@@ -113,8 +117,10 @@ servicePipe
   -> ([Derivation] -> IO ())
   -- ^ An action to run when a new derivation is requested on the pipe
   -> IO ()
-servicePipe pipe needed = withFile pipe ReadMode $ \h ->
-  runEffect (readBuildLines h >-> printBuildLines stdout)
+servicePipe pipe needed = do
+  -- Open in ReadWriteMode so that this call doesn't block
+  withFile pipe ReadWriteMode $ \h -> do
+    runEffect (readBuildLines h >-> printBuildLines stderr)
 
 -- build :: MonadIO m => Derivation ->
 build = undefined

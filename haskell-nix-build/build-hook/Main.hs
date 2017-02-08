@@ -15,6 +15,7 @@ import Say
 import System.Environment
 import System.Exit
 import System.IO
+import System.IO.Blocking
 
 import Nix.Build.Pipe
 
@@ -22,8 +23,7 @@ main :: IO ()
 main = do
   let pipeVar = "HERCULES_BUILD_HOOK_PIPE"
   pipe <- exitFailureWith (pipeVar <> " not set") =<< lookupEnv (unpack pipeVar)
-  withBinaryFile pipe AppendMode runHook
-  sayErr "Hook exiting"
+  withFileBlocking pipe WriteMode runHook
 
 runHook :: Handle -> IO ()
 runHook pipe = runEffect (postponeBuildLines >-> printBuildLines pipe)

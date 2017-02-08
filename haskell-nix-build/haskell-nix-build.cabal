@@ -19,6 +19,7 @@ library
                        Nix.Build 
                        Nix.Build.Line
                        Nix.Build.Pipe
+                       System.IO.Blocking
   other-modules:
                        Paths_haskell_nix_build
   build-depends:       base                >= 4.7 && < 5

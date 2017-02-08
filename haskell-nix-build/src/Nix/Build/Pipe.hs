@@ -9,12 +9,14 @@ module Nix.Build.Pipe
 
 import           Control.Exception (throwIO, try)
 import           Control.Monad
+import           Data.Semigroup
 import           Data.Text         as T
 import           Data.Text.IO      as T
 import qualified GHC.IO.Exception  as G
 import           Pipes
 import           Say
 import           System.IO
+import           Text.Read
 
 import Control.Exception
 import System.IO         (Handle)
@@ -28,8 +30,8 @@ readBuildLines h = go
     go = liftIO (hGetLineOrNothing h) >>= \case
       Nothing -> pure ()
       Just l -> do
-        case parseBuildLine l of
-          Nothing -> sayErrString "Failed to parse build line"
+        case readMaybe (T.unpack l) of
+          Nothing -> sayErr ("Failed to parse build line: '" <> l <> "'")
           Just bl -> yield bl
         go
 
@@ -37,8 +39,9 @@ postponeBuildLines :: Producer BuildLine IO ()
 postponeBuildLines = do
   eof <- liftIO isEOF
   unless eof $ do
-    parseBuildLine <$> liftIO T.getLine >>= \case
-      Nothing -> sayErrString "Failed to parse build line"
+    l <- liftIO T.getLine
+    case parseBuildLine l of
+      Nothing -> sayErr ("Failed to parse build line: '" <> l <> "'")
       Just bl -> do
         sayErr "# postpone"
         yield bl

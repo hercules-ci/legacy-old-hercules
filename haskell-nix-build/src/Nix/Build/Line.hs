@@ -14,7 +14,7 @@ data BuildLine = BuildLine
   , blDrvPath          :: FilePath
   , blRequiredFeatures :: [Text]
   }
-  deriving (Show)
+  deriving (Show, Read)
 
 parseBuildLine :: Text -> Maybe BuildLine
 parseBuildLine t = case T.words t of
