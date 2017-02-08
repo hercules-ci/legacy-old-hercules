@@ -12,49 +12,16 @@ rec {
             jailbreak = true;
           };
 
+          # https://github.com/plow-technologies/servant-auth/issues/25
+          servant-auth-server = overrideAttrs super.servant-auth-server {
+            version = "0.2.1.0";
+            sha256 = "113c4s7ahm83g0931667rf5zrlq2199qnnn5j84dw5m9021q97hg";
+            jailbreak = true;
+          };
+
+          # https://github.com/nikita-volkov/cases/pull/3
           cases = overrideAttrs super.cases {
             jailbreak = true;
-          };
-
-          pandoc = overrideAttrs super.pandoc {
-            jailbreak = true;
-          };
-
-          postgresql-simple-migration = overrideAttrs super.postgresql-simple-migration {
-            jailbreak = true;
-            src = pkgs.fetchFromGitHub {
-              owner = "ameingast";
-              repo = "postgresql-simple-migration";
-              rev = "5acb8fd57de13953fb665609b56845aadff37ea3";
-              sha256 = "0wjlf8d3airlmdaalrfrmdaqm2r4diz55f76rh3i7xi9296cgc9h";
-            };
-          };
-
-          servant-elm = overrideAttrs super.servant-elm {
-            version = "2016-11-08";
-            src = pkgs.fetchFromGitHub {
-              owner = "mattjbray";
-              repo = "servant-elm";
-              rev = "07650488c990ead6483b5c9a5fde560705ad2f58";
-              sha256 = "1q3bsvkv9kls8bi0jl36pjzla2kjvb6j3gla8f2wshxhash8ixvi";
-            };
-            libraryHaskellDepends = with self; [
-              base elm-export lens servant servant-foreign text interpolate mockery wl-pprint-text
-            ];
-            doCheck = false;
-          };
-
-          #
-          # New versions for servant-elm
-          #
-          elm-export = overrideAttrs super.elm-export {
-            version = "2016-11-08";
-            src = pkgs.fetchFromGitHub {
-              owner = "krisajenkins";
-              repo = "elm-export";
-              rev = "d995e32482f9704efb5d7d08568b56c518f01bd0";
-              sha256 = "0zy3m1bkg2jfcsr7ac57xk53wgpf5f44zy5rxhm2nmmq309jv7g7";
-            };
           };
 
           # https://github.com/folsen/opaleye-gen/issues/8

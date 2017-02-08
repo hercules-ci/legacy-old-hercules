@@ -73,5 +73,5 @@ main :: IO ()
 main = do
   elmconfig <- execParser $ info (helper <*> parser)
     (fullDesc <> progDesc "Generate types for Elm frontend")
-  let elmexportoptions = defElmOptions { elmExportOptions = elmoptions , urlPrefix = pack (elmherculesurl elmconfig) }
+  let elmexportoptions = defElmOptions { elmExportOptions = elmoptions , urlPrefix = Servant.Elm.Static $ pack (elmherculesurl elmconfig) }
   specsToDir [spec elmexportoptions] $ elmpath elmconfig
