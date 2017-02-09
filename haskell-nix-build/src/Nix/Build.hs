@@ -152,8 +152,15 @@ findBuildHook = runMaybeT (asum [lookInEnv, lookInInstall, lookInPath])
     lookInPath = MaybeT (findExecutable binName)
 
 -- | Return 'True' iff a file exists and is executable
-existsAndIsExecutable :: FilePath -> IO Bool
-existsAndIsExecutable file = isExecutable file `catchIOError` const (pure False)
+existsAndIsExecutable :: MonadIO m
+  => FilePath -> m Bool
+existsAndIsExecutable file =
+  liftIO $
+  isExecutable file `catchIOError`
+  (\e ->
+     if isDoesNotExistError e
+       then pure False
+       else ioError e)
 
 -- | Test whether a file is executable.
 isExecutable :: FilePath -> IO Bool
