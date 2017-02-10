@@ -182,9 +182,10 @@ getHerculesConnection Config{..} = liftIO $ do
       pure Nothing
     MigrationSuccess -> pure (Just herculesConnection)
 
--- | Load the key from the secret key file
+-- | Load the key from the secret key file if it exists or create one.
 getCipher :: MonadIO m => Config -> m (Maybe HerculesCipher)
 getCipher Config{..} = liftIO $ do
+  sayErr ("Trying to open key at: " <> pack configSecretKeyFile)
   key <- readFileMaybe configSecretKeyFile >>= \case
     Nothing -> do
       sayErr ("Unable to open secret key file: " <> pack configSecretKeyFile)
