@@ -31,7 +31,7 @@ import Crypto.Cipher.Types
 import Crypto.Error
 import Crypto.JOSE.Error
 import Crypto.Random.Entropy
-import Data.ByteString.Extra           as BS (readFileMaybe, writeFile)
+import Data.ByteString.Extra           as BS (readFileMaybe, writeFile, ByteString)
 import Data.ByteString.Lazy            (toStrict)
 import Data.List                       (find)
 import Data.Maybe                      (fromMaybe)
@@ -189,8 +189,8 @@ getCipher Config{..} = liftIO $ do
   key <- readFileMaybe configSecretKeyFile >>= \case
     Nothing -> do
       sayErr ("Unable to open secret key file: " <> pack configSecretKeyFile)
-      sayErr ("Creating new key at: " <> pack configSecretKeyFile)
-      bytes <- getEntropy (blockSize (undefined :: HerculesCipher))
+      bytes <- generateNewKey
+      sayErr ("Store generated key in file: " <> pack configSecretKeyFile)
       BS.writeFile configSecretKeyFile bytes
       pure bytes
     Just key -> pure key
@@ -200,6 +200,21 @@ getCipher Config{..} = liftIO $ do
       sayErr ("Unable to create cipher" <> pack (show e))
       pure Nothing
     CryptoPassed cipher -> pure (Just cipher)
+
+-- | Generate random data to build an encryption key.
+-- Use system Pseudo-Random-Number-Generator.
+generateNewKey :: IO BS.ByteString
+generateNewKey = do
+  let herculeCipherBlockSize = blockSize (undefined :: HerculesCipher)
+  let herculeCipherKeySize = case cipherKeySize (undefined :: HerculesCipher) of
+        KeySizeFixed value -> value
+        KeySizeEnum values -> maximum values
+        KeySizeRange _ maxValue -> maxValue
+  sayErr ("Cipher name: " <> pack (show (cipherName (undefined :: HerculesCipher))))
+  sayErr ("Cipher block size: " <> pack (show herculeCipherBlockSize))
+  sayErr ("Cipher key size: " <> pack (show herculeCipherKeySize))
+  bytes <- getEntropy herculeCipherKeySize
+  pure bytes
 
 -- | Get the hostname and port for this server separated by a colon
 --
