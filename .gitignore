@@ -1,28 +1,41 @@
+#-- Configuration
+secret.key
+
+#-- Elm
+docs/_build/
+elm-stuff/
+frontend/src/Hercules.elm
+frontend/index.html
+node_modules/
+
+#-- Haskell & Stack
+cabal-dev
+cabal.sandbox.config
+cabal.project.local
 dist
 dist-*
-cabal-dev
-*.o
-*.hi
+dist/
+*.aux
 *.chi
 *.chs.h
 *.dyn_o
 *.dyn_hi
+*.eventlog
+*.hi
+*.hp
+*.o
+*.prof
+.cabal-sandbox/
 .hpc
 .hsenv
-.cabal-sandbox/
-cabal.sandbox.config
-*.prof
-*.aux
-*.hp
-*.eventlog
 .stack-work/
-cabal.project.local
 .HTF/
-dist/
 
-elm-stuff/
-node_modules/
-frontend/src/Hercules.elm
-docs/_build/
+#-- Nix
+result
 
-secret.key
+#-- Unix
+*~
+
+#-- Vim
+*.swp
