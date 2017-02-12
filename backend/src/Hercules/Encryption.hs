@@ -10,7 +10,6 @@ module Hercules.Encryption
 
 import Control.Monad.Log
 import Control.Monad.Reader
-import Crypto.Cipher.AES
 import Crypto.Cipher.Types
 import Crypto.Random.Entropy
 import Data.ByteArray        as BA
