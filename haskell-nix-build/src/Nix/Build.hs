@@ -167,4 +167,3 @@ isExecutable :: FilePath -> IO Bool
 isExecutable file = do
     perms <- getPermissions file
     return (executable perms)
-
