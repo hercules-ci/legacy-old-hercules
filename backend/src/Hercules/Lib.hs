@@ -15,6 +15,7 @@ import Data.Monoid                          ((<>))
 import Data.Text
 import Network.Wai
 import Network.Wai.Handler.Warp
+import Network.Wai.Middleware.Cors          (simpleCors)
 import Network.Wai.Middleware.RequestLogger
 import Safe                                 (headMay)
 import Servant
@@ -36,6 +37,7 @@ import Hercules.Query.Hydra
 import Hercules.ServerEnv
 import Hercules.Static
 
+-- | start Application. No restriction on cross-domain (CORS allow *)
 startApp :: Config -> IO ()
 startApp config = do
   let authenticators = configAuthenticatorList config
@@ -46,7 +48,7 @@ startApp config = do
     Just env -> do
       T.putStrLn $ "Serving on http://" <> configHostname config
                    <> ":" <> (pack . show $ port)
-      run port . logging =<< app env
+      run port . (logging . simpleCors) =<< app env
 
 loggingMiddleware :: Config -> Middleware
 loggingMiddleware config = case configAccessLogLevel config of
