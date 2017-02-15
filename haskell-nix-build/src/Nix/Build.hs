@@ -27,7 +27,6 @@ import System.Environment        (getEnvironment, lookupEnv)
 import System.Exit
 import System.FilePath
 import System.IO
-import System.IO.Blocking
 import System.IO.Error
 import System.IO.Temp
 import System.Posix.Files
@@ -37,11 +36,6 @@ import Nix.Build.Pipe
 
 newtype Derivation = Derivation { unDerivation :: FilePath }
   deriving (Show)
-
-data BuildRequirements a
-  = NeedDerivation Derivation
-    -- ^ This derivation needs to be present in the store to continue
-  | Built a
 
 -- | 'evalutate' takes a path to a .nix file and returns the list of
 -- derivations asynchronously, it also returns an 'IO' action which will return
