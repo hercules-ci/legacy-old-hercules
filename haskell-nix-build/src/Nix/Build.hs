@@ -3,7 +3,8 @@
 {-# LANGUAGE OverloadedStrings #-}
 
 module Nix.Build
-  ( evaluate
+  ( Derivation(..)
+  , evaluate
   -- , build
   ) where
 
