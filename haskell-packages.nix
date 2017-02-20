@@ -1,7 +1,7 @@
 { pkgs ? (import ./../pkgs.nix) {} }:
 
 rec {
-  haskellPackages = pkgs.haskell.packages.ghc801.override{
+  haskellPackages = pkgs.haskell.packages.ghc802.override{
     overrides =
       let overrideAttrs = package: newAttrs: package.override (args: args // {
               mkDerivation = expr: args.mkDerivation (expr // newAttrs);
@@ -17,11 +17,7 @@ rec {
             version = "0.2.1.0";
             sha256 = "113c4s7ahm83g0931667rf5zrlq2199qnnn5j84dw5m9021q97hg";
             jailbreak = true;
-          };
-
-          # https://github.com/nikita-volkov/cases/pull/3
-          cases = overrideAttrs super.cases {
-            jailbreak = true;
+            doCheck = false;
           };
 
           # https://github.com/folsen/opaleye-gen/issues/8
@@ -41,8 +37,8 @@ rec {
             src = pkgs.fetchFromGitHub {
               owner = "tomjaguarpaw";
               repo = "product-profunctors";
-              rev = "1f14ce3f495cfaac292a342e9d67c3f2f753c914";
-              sha256 = "0qchq0hky05w52wpz1b6rp3y7k6z3rs16kpab175j28nqf6h47f3";
+              rev = "cd5071a285cbd436e1c8f4338befe846cfa5e1fb";
+              sha256 = "1w6c82c83ab2irdmlqkv7ps391x73xi5j8s2cdv61832ijc6n3x5";
             };
           };
         };
@@ -60,7 +56,7 @@ rec {
         ) src;
 
         package = pkgs.runCommand "default.nix" {} ''
-          ${pkgs.haskell.packages.ghc801.cabal2nix}/bin/cabal2nix \
+          ${pkgs.haskell.packages.ghc802.cabal2nix}/bin/cabal2nix \
             ${if doFilter then filteredSrc else src} \
             ${if doHaddock then "" else "--no-haddock"} \
             > $out

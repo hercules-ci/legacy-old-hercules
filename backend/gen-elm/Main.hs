@@ -13,6 +13,7 @@ module Main
   ) where
 
 import Data.Text (Text, replace, pack)
+import Data.Monoid ((<>))
 import Elm
 import Servant.Auth.Server
 import Servant.Elm
