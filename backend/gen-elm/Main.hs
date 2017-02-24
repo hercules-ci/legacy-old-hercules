@@ -61,18 +61,16 @@ instance forall lang ftype api auths a.
 
 data ElmConfig = ElmConfig
   { elmpath :: String
-  , elmherculesurl :: String
   }
 
 parser :: Parser ElmConfig
 parser =
       ElmConfig
   <$> argument str (metavar "FOLDER")
-  <*> argument str (metavar "HERCULES-URL")
 
 main :: IO ()
 main = do
   elmconfig <- execParser $ info (helper <*> parser)
     (fullDesc <> progDesc "Generate types for Elm frontend")
-  let elmexportoptions = defElmOptions { elmExportOptions = elmoptions , urlPrefix = Servant.Elm.Static $ pack (elmherculesurl elmconfig) }
+  let elmexportoptions = defElmOptions { elmExportOptions = elmoptions , urlPrefix = Dynamic }
   specsToDir [spec elmexportoptions] $ elmpath elmconfig
