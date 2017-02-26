@@ -20,6 +20,7 @@ import Data.List.Extra           as List (foldl1', nubOrdOn)
 import Data.Semigroup
 import Data.Text                 as T
 import Data.Text.Encoding
+import Data.Vector
 import Paths_haskell_nix_build
 import Pipes
 import System.Directory
@@ -109,13 +110,41 @@ runInstantiate hook pipe nix = do
 servicePipe
   :: FilePath
   -- ^ The path to the fifo to read from
-  -> ([Derivation] -> IO ())
+  -> (Derivation -> IO a)
   -- ^ An action to run when a new derivation is requested on the pipe
-  -> IO ()
+  -> IO (Vector a)
 servicePipe pipe needed = do
   -- Open in ReadWriteMode so that this call doesn't block
   withFile pipe ReadWriteMode $ \h -> do
     runEffect (readBuildLines h >-> printBuildLines stderr)
+
+-- | Build a derivation and put it into the store.
+realize :: Derivation -> IO FilePath
+realize drv = withBuildHook undefined
+
+-- | Run a process with the build hook set up and NIX_BUILD_HOOK set.
+withBuildHook
+  :: ProcessConfig stdin stdout stderr
+     -- ^ The nix command to run with NIX_BUILD_HOOK set
+  -> (Derivation -> IO a)
+     -- ^ What to do with requested derivations
+  -> IO [a]
+withBuildHook process handleDrv =
+  withSystemTempDirectory "hercules-build-hook" $ \tmp -> do
+    let pipe = tmp </> "pipe"
+    createNamedPipe
+      pipe
+      (List.foldl1' unionFileModes
+                    [ namedPipeMode
+                    , ownerReadMode
+                    , ownerWriteMode
+                    ])
+    withAsync (servicePipe pipe needed) $ \service ->
+      withAsync (runInstantiate hook pipe nix) $ \inst -> do
+        r <- wait inst
+        cancel service
+        pure r
+
 
 -- build :: MonadIO m => Derivation ->
 build = undefined
