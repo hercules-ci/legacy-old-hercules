@@ -1,17 +1,9 @@
 { pkgs ? (import ./../pkgs.nix) {} }:
 
 rec {
-  haskellPackages = pkgs.haskell.packages.ghc802.override{
+  haskellPackages = pkgs.haskell.packages.ghc802.override {
     overrides =
-      let overrideAttrs = package: newAttrs: package.override (args: args // {
-              mkDerivation = expr: args.mkDerivation (expr // newAttrs);
-            });
-
-      in self: super: {
-          servant-pandoc = overrideAttrs super.servant-pandoc {
-            jailbreak = true;
-          };
-
+      self: super: {
           # https://github.com/folsen/opaleye-gen/issues/8
           opaleye-gen = haskellPackageGen { doFilter = false; } (
             pkgs.fetchFromGitHub{

@@ -13,24 +13,37 @@ module Main
   ) where
 
 import Control.Lens        (over, (|>))
+import Data.Aeson          (encode)
+import qualified Data.ByteString.Lazy.Char8 as BL8
 import Data.Int            (Int32)
 import Data.Proxy          (Proxy (..))
 import Data.Text           (Text)
 import Servant             ((:>), Capture)
 import Servant.Auth.Server
 import Servant.Docs
-import Servant.Docs.Pandoc
-import Text.Pandoc
-import Text.Pandoc.Options (def)
+import Servant.Swagger
+import Data.Swagger        hiding (headers)
 
 import qualified Hercules.API            as Hercules
 import           Hercules.Database.Extra
 
-writeDocs :: API -> IO ()
-writeDocs api = writeFile "api.rst" (writeRST def (pandoc api))
+-- TODO: Implement proper HasSwagger for servant-auth
+instance (HasSwagger api) => HasSwagger (Auth '[JWT] Hercules.UserId :> api) where
+  toSwagger Proxy =
+    toSwagger proxy
+      where
+        proxy :: Proxy api
+        proxy = Proxy
+
+writeDocs :: Proxy Hercules.QueryAPI -> IO ()
+writeDocs api = writeFile "api.yml" (BL8.unpack $ encode $ toSwagger api)
 
 main :: IO ()
-main = writeDocs (docs (Proxy :: Proxy Hercules.QueryAPI))
+main = writeDocs (Proxy :: Proxy Hercules.QueryAPI)
+
+instance ToSchema Project where
+instance ToSchema Jobset where
+instance ToSchema ProjectWithJobsets where
 
 instance ToSample Project where
 
