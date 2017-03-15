@@ -12,14 +12,6 @@ rec {
             jailbreak = true;
           };
 
-          # https://github.com/plow-technologies/servant-auth/issues/25
-          servant-auth-server = overrideAttrs super.servant-auth-server {
-            version = "0.2.1.0";
-            sha256 = "113c4s7ahm83g0931667rf5zrlq2199qnnn5j84dw5m9021q97hg";
-            jailbreak = true;
-            doCheck = false;
-          };
-
           # https://github.com/folsen/opaleye-gen/issues/8
           opaleye-gen = haskellPackageGen { doFilter = false; } (
             pkgs.fetchFromGitHub{
@@ -30,17 +22,8 @@ rec {
             }
           );
 
-          #
           # New versions for opaleye-gen
-          #
-          product-profunctors = overrideAttrs super.product-profunctors {
-            src = pkgs.fetchFromGitHub {
-              owner = "tomjaguarpaw";
-              repo = "product-profunctors";
-              rev = "cd5071a285cbd436e1c8f4338befe846cfa5e1fb";
-              sha256 = "1w6c82c83ab2irdmlqkv7ps391x73xi5j8s2cdv61832ijc6n3x5";
-            };
-          };
+          product-profunctors = super.product-profunctors_0_8_0_3;
         };
       };
 
