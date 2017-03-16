@@ -3,6 +3,7 @@
 
 module Hercules.Lib
   ( startApp
+  , swaggerDoc
   ) where
 
 import Control.Monad                        (join)
@@ -12,12 +13,15 @@ import Data.Foldable                        (toList)
 import Data.List                            (sortOn)
 import Data.Maybe                           (catMaybes)
 import Data.Monoid                          ((<>))
+import Data.Swagger                         
 import Data.Text
 import Network.Wai
 import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.RequestLogger
 import Safe                                 (headMay)
 import Servant
+import Servant.Swagger
+import Servant.Swagger.UI
 import Servant.Auth.Server                  (AuthResult (..),
                                              defaultCookieSettings)
 import Servant.Mandatory
@@ -35,6 +39,7 @@ import Hercules.OAuth.Authenticators
 import Hercules.Query.Hydra
 import Hercules.ServerEnv
 import Hercules.Static
+import Hercules.Swagger
 
 startApp :: Config -> IO ()
 startApp config = do
@@ -64,6 +69,7 @@ server :: Env -> Server API
 server env = enter (Nat (runApp env)) api
   where api = queryApi
               :<|> pages
+              :<|> serveSwagger
         pages = welcomePage
                 :<|> (mandatory1 .: loginPage)
                 :<|> (mandatory1 .∵ authCallback)
@@ -84,6 +90,9 @@ server env = enter (Nat (runApp env)) api
 
 getUser :: AuthResult UserId -> App Text
 getUser = withAuthenticated (pack . show)
+
+serveSwagger :: App (Server (SwaggerSchemaUI' dir api))
+serveSwagger = return $ swaggerSchemaUIServer swaggerDoc
 
 withAuthenticated :: (a -> b) -> AuthResult a -> App b
 withAuthenticated f = \case

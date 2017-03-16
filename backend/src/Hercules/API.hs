@@ -12,6 +12,7 @@ module Hercules.API
 import Data.Text
 import Servant
 import Servant.Auth.Server
+import Servant.Swagger.UI
 import Servant.HTML.Blaze
 import Text.Blaze.Html5
 
@@ -49,3 +50,4 @@ type Pages = "login" :> Get '[HTML] Html
 
 type API = QueryAPI
       :<|> Pages
+      :<|> SwaggerSchemaUI "" "swagger.json" 
