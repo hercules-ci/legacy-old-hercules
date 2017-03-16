@@ -117,8 +117,9 @@ executable gen-docs
                      , aeson
                      , bytestring
                      , servant-auth-server
-                     , servant-docs
+                     , servant-auth-swagger
                      , servant-swagger
+                     , servant-docs
                      , swagger2
                      , servant-server
                      , text

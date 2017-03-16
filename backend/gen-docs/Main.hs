@@ -20,20 +20,13 @@ import Data.Proxy          (Proxy (..))
 import Data.Text           (Text)
 import Servant             ((:>), Capture)
 import Servant.Auth.Server
+import Servant.Auth.Swagger
 import Servant.Docs
 import Servant.Swagger
 import Data.Swagger        hiding (headers)
 
 import qualified Hercules.API            as Hercules
 import           Hercules.Database.Extra
-
--- TODO: Implement proper HasSwagger for servant-auth
-instance (HasSwagger api) => HasSwagger (Auth '[JWT] Hercules.UserId :> api) where
-  toSwagger Proxy =
-    toSwagger proxy
-      where
-        proxy :: Proxy api
-        proxy = Proxy
 
 writeDocs :: Proxy Hercules.QueryAPI -> IO ()
 writeDocs api = writeFile "api.yml" (BL8.unpack $ encode $ toSwagger api)
@@ -59,16 +52,3 @@ instance ToSample Int32 where
 
 instance ToCapture (Capture "projectName" Text) where
   toCapture _ = DocCapture "projectName" "Name of the project"
-
-instance (HasDocs api) => HasDocs (Auth auths usr :> api) where
-  docsFor Proxy (endpoint, action) =
-    docsFor (Proxy :: Proxy api) (endpoint, action')
-    where
-     authProxy = Proxy :: Proxy (Auth auths usr)
-     action' = over headers (|> toRequiredHeader authProxy) action
-
-class ToRequiredHeader a where
-  toRequiredHeader :: Proxy a -> Text
-
-instance ToRequiredHeader (Auth auths usr) where
-  toRequiredHeader _ = "Authorization"
