@@ -24,6 +24,7 @@ import Servant
 import Servant.Auth.Server                  (AuthResult (..),
                                              defaultCookieSettings)
 import Servant.Mandatory
+import Servant.Redirect
 import Servant.Swagger
 import Servant.Swagger.UI
 
@@ -70,6 +71,7 @@ server :: Env -> Server API
 server env = enter (Nat (runApp env)) api :<|> serveSwagger
   where api = queryApi
               :<|> pages
+              :<|> root
         pages = welcomePage
                 :<|> (mandatory1 .: loginPage)
                 :<|> (mandatory1 .∵ authCallback)
@@ -88,11 +90,15 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
 (.∵) :: (d -> e) -> (a -> b -> c -> d) -> a -> b -> c -> e
 (.∵) = (.) . (.) . (.)
 
+
+root :: App a
+root = redirectBS "/docs/"
+
+serveSwagger :: Server (SwaggerSchemaUI "docs" "swagger.json")
+serveSwagger = swaggerSchemaUIServer swaggerDoc
+
 getUser :: AuthResult UserId -> App Text
 getUser = withAuthenticated (pack . show)
-
-serveSwagger :: Server (SwaggerSchemaUI "swagger.json" "swagger-ui")
-serveSwagger = swaggerSchemaUIServer swaggerDoc
 
 withAuthenticated :: (a -> b) -> AuthResult a -> App b
 withAuthenticated f = \case

@@ -49,5 +49,6 @@ type Pages = "login" :> Get '[HTML] Html
         :<|> "repos" :> Auth '[JWT] UserId :> Get '[HTML] Html
 
 type API = (QueryAPI
-      :<|> Pages)
-      :<|> SwaggerSchemaUI "swagger.json" "swagger-ui"
+      :<|> Pages
+      :<|> Get '[HTML] Html) -- https://github.com/haskell-servant/servant/issues/117
+      :<|> SwaggerSchemaUI "docs" "swagger.json"

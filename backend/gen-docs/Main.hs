@@ -5,7 +5,7 @@ module Main
 import Data.Aeson                              (encode)
 import qualified Data.ByteString.Lazy.Char8 as BL8
 
-import qualified Hercules.Swagger              (swaggerDoc)
+import Hercules.Swagger                        (swaggerDoc)
 
 main :: IO ()
-main = writeFile "api.yml" (BL8.unpack $ encode $ swaggerDoc) 
+main = writeFile "api.yml" $ BL8.unpack $ encode swaggerDoc

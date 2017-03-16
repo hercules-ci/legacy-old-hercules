@@ -120,8 +120,7 @@ executable gen-docs
   build-depends:       base
                      , hercules
                      , bytestring
-                     , servant-auth-swagger
-                     , servant-server
+                     , aeson
                      , text
   default-language:    Haskell2010
 
