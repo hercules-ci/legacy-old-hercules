@@ -13,7 +13,7 @@ import Data.Foldable                        (toList)
 import Data.List                            (sortOn)
 import Data.Maybe                           (catMaybes)
 import Data.Monoid                          ((<>))
-import Data.Swagger                         
+import Data.Swagger
 import Data.Text
 import Network.Wai
 import Network.Wai.Handler.Warp
@@ -65,8 +65,8 @@ app env = do
       authConfig = defaultCookieSettings :. envJWTSettings env :. EmptyContext
   pure $ serveWithContext api authConfig (server env)
 
-server :: Env -> Server API
-server env = enter (Nat (runApp env)) api
+server :: Env -> Server (API :<|> SwaggerSchemaUI "swagger-ui" "swagger.json"
+server env = (enter (Nat (runApp env))) :<|> serveSwagger
   where api = queryApi
               :<|> pages
               :<|> serveSwagger
@@ -91,7 +91,7 @@ server env = enter (Nat (runApp env)) api
 getUser :: AuthResult UserId -> App Text
 getUser = withAuthenticated (pack . show)
 
-serveSwagger :: App (Server (SwaggerSchemaUI' dir api))
+serveSwagger :: Server (SwaggerSchemaUI "swagger-ui" "swagger.json")
 serveSwagger = return $ swaggerSchemaUIServer swaggerDoc
 
 withAuthenticated :: (a -> b) -> AuthResult a -> App b
