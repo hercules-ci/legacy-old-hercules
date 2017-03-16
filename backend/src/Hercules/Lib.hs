@@ -1,3 +1,4 @@
+{-# LANGUAGE DataKinds         #-}
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
@@ -20,11 +21,11 @@ import Network.Wai.Handler.Warp
 import Network.Wai.Middleware.RequestLogger
 import Safe                                 (headMay)
 import Servant
-import Servant.Swagger
-import Servant.Swagger.UI
 import Servant.Auth.Server                  (AuthResult (..),
                                              defaultCookieSettings)
 import Servant.Mandatory
+import Servant.Swagger
+import Servant.Swagger.UI
 
 import qualified Data.List.NonEmpty as NE
 import qualified Data.Text.IO       as T
@@ -65,11 +66,10 @@ app env = do
       authConfig = defaultCookieSettings :. envJWTSettings env :. EmptyContext
   pure $ serveWithContext api authConfig (server env)
 
-server :: Env -> Server (API :<|> SwaggerSchemaUI "swagger-ui" "swagger.json"
-server env = (enter (Nat (runApp env))) :<|> serveSwagger
+server :: Env -> Server API
+server env = enter (Nat (runApp env)) api :<|> serveSwagger
   where api = queryApi
               :<|> pages
-              :<|> serveSwagger
         pages = welcomePage
                 :<|> (mandatory1 .: loginPage)
                 :<|> (mandatory1 .∵ authCallback)
@@ -91,8 +91,8 @@ server env = (enter (Nat (runApp env))) :<|> serveSwagger
 getUser :: AuthResult UserId -> App Text
 getUser = withAuthenticated (pack . show)
 
-serveSwagger :: Server (SwaggerSchemaUI "swagger-ui" "swagger.json")
-serveSwagger = return $ swaggerSchemaUIServer swaggerDoc
+serveSwagger :: Server (SwaggerSchemaUI "swagger.json" "swagger-ui")
+serveSwagger = swaggerSchemaUIServer swaggerDoc
 
 withAuthenticated :: (a -> b) -> AuthResult a -> App b
 withAuthenticated f = \case
