@@ -50,5 +50,8 @@ type Pages = "login" :> Get '[HTML] Html
 
 type API = (QueryAPI
       :<|> Pages
-      :<|> Get '[HTML] Html) -- https://github.com/haskell-servant/servant/issues/117
+      -- TODO: Waiting for Servant to gain Redirect combinators,
+      -- The return type is wrong, this endpoint always redirects
+      -- See https://github.com/haskell-servant/servant/issues/117
+      :<|> Get '[HTML] Html)
       :<|> SwaggerSchemaUI "docs" "swagger.json"
