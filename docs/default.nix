@@ -4,20 +4,22 @@
 
 with pkgs;
 
+
 stdenv.mkDerivation {
   name = "hercules-docs";
 
   src = ./.;
 
-  buildInputs = [ python3Packages.sphinx python3Packages.sphinx_rtd_theme ];
+  propagatedBuildInputs = with python3Packages; [ sphinxcontrib-openapi sphinx_rtd_theme ];
 
   preBuild = ''
     ${backend}/bin/gen-docs
-    sed -i '1 i\HTTP API\n********' api.rst
+    echo "HTTP API" > api.rst
+    echo "********" >> api.rst
+    echo ".. openapi:: api.yml" >> api.rst
   '';
 
   buildFlags = ["html"];
-
 
   installPhase = ''
     mkdir $out

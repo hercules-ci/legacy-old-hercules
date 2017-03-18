@@ -36,6 +36,7 @@ library
                        Hercules.Query.Hydra
                        Hercules.ServerEnv
                        Hercules.Static
+                       Hercules.Swagger
                        Network.URI.Extra
                        Opaleye.Extra
                        Servant.Mandatory
@@ -53,6 +54,7 @@ library
                      , http-client-tls
                      , interpolatedstring-perl6
                      , jose
+                     , lens
                      , logging-effect
                      , markdown
                      , memory
@@ -68,6 +70,10 @@ library
                      , safe
                      , say
                      , servant-auth-server
+                     , servant-auth-swagger
+                     , servant-swagger-ui
+                     , servant-swagger
+                     , swagger2
                      , servant-blaze
                      , servant-elm
                      , servant-server
@@ -113,12 +119,8 @@ executable gen-docs
   ghc-options:         -threaded -rtsopts -with-rtsopts=-N
   build-depends:       base
                      , hercules
-                     , lens
-                     , pandoc
-                     , servant-auth-server
-                     , servant-docs
-                     , servant-pandoc
-                     , servant-server
+                     , bytestring
+                     , aeson
                      , text
   default-language:    Haskell2010
 

@@ -13,6 +13,7 @@ import Data.Text
 import Servant
 import Servant.Auth.Server
 import Servant.HTML.Blaze
+import Servant.Swagger.UI
 import Text.Blaze.Html5
 
 import Hercules.Database.Extra       (Project, ProjectWithJobsets)
@@ -47,5 +48,10 @@ type Pages = "login" :> Get '[HTML] Html
                          :> Get '[HTML] Html
         :<|> "repos" :> Auth '[JWT] UserId :> Get '[HTML] Html
 
-type API = QueryAPI
+type API = (QueryAPI
       :<|> Pages
+      -- TODO: Waiting for Servant to gain Redirect combinators,
+      -- The return type is wrong, this endpoint always redirects
+      -- See https://github.com/haskell-servant/servant/issues/117
+      :<|> Get '[HTML] Html)
+      :<|> SwaggerSchemaUI "docs" "swagger.json"
