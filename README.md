@@ -7,7 +7,7 @@ Continuous Integration for Nix projects.
 Hercules uses the same DB schema as [Hydra](http://www.nixos.org/hydra/),
 but a new Haskell backend with a RESTful API and Elm as new frontend.
 
-The goal of 1.0 milestone is to run Hercules as a CI for Github Pull Request.
+The goal of the 1.0 milestone is to run Hercules as a CI for Github Pull Requests.
 
 ## Background
 
