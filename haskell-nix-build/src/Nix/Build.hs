@@ -2,192 +2,153 @@
 {-# LANGUAGE LambdaCase        #-}
 {-# LANGUAGE OverloadedStrings #-}
 
+{-# OPTIONS_GHC -fno-warn-name-shadowing #-}
+
 module Nix.Build
-  ( Derivation(..)
+  (
+  -- * Types
+    Derivation(..)
+  -- * Evaluation
   , evaluate
-  -- , build
+  -- * Realization
+  , realize
+  -- * Debugging tools
+  , run
   ) where
 
-import Control.Concurrent.Async
-import Control.Concurrent.STM
-import Control.Monad
-import Control.Monad.Except
-import Control.Monad.Trans.Maybe
-import Data.ByteString.Lazy      (toStrict)
-import Data.Foldable
-import Data.IORef
-import Data.List.Extra           as List (foldl1', nubOrdOn)
-import Data.Semigroup
-import Data.Text                 as T
-import Data.Text.Encoding
-import Data.Vector
-import Paths_haskell_nix_build
-import Pipes
-import System.Directory
-import System.Environment        (getEnvironment, lookupEnv)
-import System.Exit
-import System.FilePath
-import System.IO
-import System.IO.Error
-import System.IO.Temp
-import System.Posix.Files
-import System.Process.Typed
+import           Control.Concurrent.STM
+import           Control.Monad.Except
+import           Control.Monad.Log
+import           Data.ByteString.Lazy.Char8   as BS8
+import           Data.Semigroup
+import           Data.Text                    as T
+import qualified Data.Vector                  as V
+import           System.Directory
+import           System.Exit
+import           System.FilePath
+import           System.IO.Temp
+import           System.Process.Typed
+import           Text.PrettyPrint.Leijen.Text (textStrict)
 
-import Nix.Build.Pipe
-
+-- | A file containing a derivation.
+--
+-- This may be the path to a symbolic link to a store path.
 newtype Derivation = Derivation { unDerivation :: FilePath }
-  deriving (Show)
+  deriving Show
 
--- | 'evalutate' takes a path to a .nix file and returns the list of
--- derivations asynchronously, it also returns an 'IO' action which will return
--- all the derivations which are being build during evaluation.
+-- | A helper for running the actions in this module
+run
+  :: Show a
+  => ExceptT e (LoggingT (WithSeverity Text) IO) a -> IO (Either e a)
+run a = runLoggingT (runExceptT a) (print . renderWithSeverity textStrict)
+
+-- | Use @nix-instantiate@ to evaluate a nix expression, optionally adding
+-- roots for the generated derivations.
 evaluate
-  :: (MonadIO m, MonadError Text m)
-  => FilePath -> m (IO [Derivation], Async (Either Text [Derivation]))
-evaluate nix = do
-  needed <- liftIO $ newIORef []
-  let pushNeeded drvs = modifyIORef' needed (<> drvs)
-  liftIO findBuildHook >>= \case
-    Nothing -> throwError "Can't find 'hercules-build-hook'"
-    Just hook -> do
-      builder <- liftIO (async (evalutate' hook pushNeeded nix))
-      pure (readIORef needed, builder)
+  :: ( MonadError Text m
+     , MonadIO m
+     , MonadLog (WithSeverity Text) m
+     )
+  => FilePath
+  -- ^ The path to a file containing a Nix Expresion to evaluate.
+  -> Maybe FilePath
+  -- ^ The path to a directory in which to symlink roots to the generated
+  -- derivations. A unique directory will be created in this path and the
+  -- derivation links placed in there.
+  -> m (V.Vector Derivation)
+  -- ^ The derivations represented in this expression
+evaluate expression rootDir = do
+  logInfo ("Evaluating " <> T.pack expression)
 
-evalutate'
-  :: FilePath
-  -- ^ The path to hercules-build-hook
-  -> ([Derivation] -> IO ())
-  -- ^ A function to push the names of derivations being built
-  -> FilePath
-  -- ^ The .nix file to evaluate
-  -> IO (Either Text [Derivation])
-  -- ^ The list of derivations in this expression
-evalutate' hook needed nix =
-  withSystemTempDirectory "hercules-build-hook" $ \tmp -> do
-    let pipe = tmp </> "pipe"
-    createNamedPipe
-      pipe
-      (List.foldl1' unionFileModes
-                    [ namedPipeMode
-                    , ownerReadMode
-                    , ownerWriteMode
-                    ])
+  -- Create a directory to put the roots in and get the appropriate flags to
+  -- pass to nix-instantiate.
+  rootFlags <- case rootDir of
+    Nothing      -> do
+      logWarning "Not adding roots during evaluation"
+      pure []
+    Just rootDir -> getRootFlags rootDir
 
-    withAsync (servicePipe pipe needed) $ \service ->
-      withAsync (runInstantiate hook pipe nix) $ \inst -> do
-        r <- wait inst
-        cancel service
-        pure r
+  -- Call nix-instantiate to evaluate the expression
+  let args = expression : rootFlags
+      inst = setStdout byteStringOutput
+           . setStdin closed
+           . setStderr inherit
+           $ proc "nix-instantiate" args
 
-runInstantiate
-  :: FilePath
-  -- ^ The path to hercules-build-hook
-  -> FilePath
-  -- ^ The path the the pipe for the build hook to write to
-  -> FilePath
-  -- ^ The nix expression to instantiate
-  -> IO (Either Text [Derivation])
-  -- ^ The list of derivations in this expression
-runInstantiate hook pipe nix = do
-  env <- getEnvironment
-  let envOverrides = [ ("NIX_BUILD_HOOK", hook)
-                     , ("HERCULES_BUILD_HOOK_PIPE", pipe)
-                     , ("LOCALE", "C")
-                     ]
-  let newEnv = nubOrdOn fst (envOverrides <> env)
-  let pc = setEnv newEnv
-         . setStdout byteStringOutput
-         . setStdin closed
-         $ proc "nix-instantiate" [nix]
-  (exitCode, stdout) <-
-    withProcess pc (\p -> (,) <$> waitExitCode p <*> atomically (getStdout p))
-  case exitCode of
-    ExitFailure _ -> pure $ Left "nix-instantiate failed"
-    ExitSuccess   -> pure $ Right $
-      let ls = T.lines (decodeUtf8 . toStrict $ stdout)
-      in Derivation . T.unpack <$> ls
+  logDebug ("Calling nix-instantiate with " <> T.pack (show args))
+  (code, stdout) <- readProcessStdOut inst
 
-servicePipe
-  :: FilePath
-  -- ^ The path to the fifo to read from
-  -> (Derivation -> IO a)
-  -- ^ An action to run when a new derivation is requested on the pipe
-  -> IO (Vector a)
-servicePipe pipe needed = do
-  -- Open in ReadWriteMode so that this call doesn't block
-  withFile pipe ReadWriteMode $ \h -> do
-    runEffect (readBuildLines h >-> printBuildLines stderr)
+  -- Abort on failure
+  throwOnFailure "nix-instantiate" code
 
--- | Build a derivation and put it into the store.
-realize :: Derivation -> IO FilePath
-realize drv = withBuildHook undefined
+  -- Return the 'Derivation's in a 'Vector'
+  pure . fmap (Derivation . BS8.unpack) . V.fromList . BS8.lines $ stdout
 
--- | Run a process with the build hook set up and NIX_BUILD_HOOK set.
-withBuildHook
-  :: ProcessConfig stdin stdout stderr
-     -- ^ The nix command to run with NIX_BUILD_HOOK set
-  -> (Derivation -> IO a)
-     -- ^ What to do with requested derivations
-  -> IO [a]
-withBuildHook process handleDrv =
-  withSystemTempDirectory "hercules-build-hook" $ \tmp -> do
-    let pipe = tmp </> "pipe"
-    createNamedPipe
-      pipe
-      (List.foldl1' unionFileModes
-                    [ namedPipeMode
-                    , ownerReadMode
-                    , ownerWriteMode
-                    ])
-    withAsync (servicePipe pipe needed) $ \service ->
-      withAsync (runInstantiate hook pipe nix) $ \inst -> do
-        r <- wait inst
-        cancel service
-        pure r
+-- | Use @nix-store --realize@ to build the outputs specified by a derivation
+realize
+  :: ( MonadError Text m
+     , MonadIO m
+     , MonadLog (WithSeverity Text) m
+     )
+  => Derivation
+  -- ^ The path to the derivation to realise
+  -> Maybe FilePath
+  -- ^ The path to a directory in which to symlink roots to the generated
+  -- paths. A unique directory will be created in this path and the path links
+  -- placed in there.
+  -> m (V.Vector FilePath)
+  -- ^ The realised store paths
+realize derivation rootDir = do
+  logInfo ("Realizing " <> T.pack (unDerivation derivation))
+
+  -- Create a directory to put the roots in and get the appropriate flags to
+  -- pass to nix-store.
+  rootFlags <- case rootDir of
+    Nothing      -> do
+      logWarning "Not adding roots during realization"
+      pure []
+    Just rootDir -> getRootFlags rootDir
+
+  -- Call nix-store to evaluate the expression
+  let args = ["--realize", unDerivation derivation] ++ rootFlags
+      inst = setStdout byteStringOutput
+           . setStdin closed
+           . setStderr inherit
+           $ proc "nix-store" args
+
+  logDebug ("Calling nix-store with " <> T.pack (show args))
+  (code, stdout) <- readProcessStdOut inst
+
+  -- Abort on failure
+  throwOnFailure "nix-store" code
+
+  -- Return the 'Derivation's in a 'Vector'
+  pure . fmap BS8.unpack . V.fromList . BS8.lines $ stdout
+
+throwOnFailure
+  :: MonadError Text m
+  => Text
+  -- ^ The process name
+  -> ExitCode
+  -- ^ The exit code
+  -> m ()
+throwOnFailure processName = \case
+  ExitFailure code ->
+    throwError $ processName <> " failed with code: " <> T.pack (show code)
+  ExitSuccess -> pure ()
 
 
--- build :: MonadIO m => Derivation ->
-build = undefined
+-- | Get a set of suitable flags for adding an indirect root
+getRootFlags :: (MonadLog (WithSeverity Text) m, MonadIO m) => FilePath -> m [String]
+getRootFlags rootDir = do
+  uniqueDir <- liftIO $ makeAbsolute =<< createTempDirectory rootDir "drvs"
+  logDebug ("Created root dir " <> T.pack uniqueDir)
+  pure ["--add-root", uniqueDir </> "drv", "--indirect"]
 
--- | Try and find the 'hercules-build-hook' binary.
---
--- If the @HERCULES_BUILD_HOOK@ env variable is set to an executable binary
--- then use that.
---
--- Then look in the install directory.
---
--- Otherwise look in @PATH@ for @hercules-build-hook@
-findBuildHook :: IO (Maybe FilePath)
-findBuildHook = runMaybeT (asum [lookInEnv, lookInInstall, lookInPath])
-  where
-    binName = "hercules-build-hook"
-    lookInEnv :: MaybeT IO FilePath
-    lookInEnv = do
-      h <- MaybeT (lookupEnv "HERCULES_BUILD_HOOK")
-      guard =<< liftIO (existsAndIsExecutable h)
-      pure h
-    lookInInstall :: MaybeT IO FilePath
-    lookInInstall = do
-      binDir <- liftIO getBinDir
-      let h = binDir </> binName
-      guard =<< liftIO (existsAndIsExecutable h)
-      pure h
-    lookInPath :: MaybeT IO FilePath
-    lookInPath = MaybeT (findExecutable binName)
 
--- | Return 'True' iff a file exists and is executable
-existsAndIsExecutable :: MonadIO m
-  => FilePath -> m Bool
-existsAndIsExecutable file =
-  liftIO $
-  isExecutable file `catchIOError`
-  (\e ->
-     if isDoesNotExistError e
-       then pure False
-       else ioError e)
-
--- | Test whether a file is executable.
-isExecutable :: FilePath -> IO Bool
-isExecutable file = do
-    perms <- getPermissions file
-    return (executable perms)
+readProcessStdOut
+  :: MonadIO m
+  => ProcessConfig stdin (STM BS8.ByteString) stderr -> m (ExitCode, BS8.ByteString)
+readProcessStdOut pc =
+  liftIO . withProcess pc $ \p ->
+    atomically $ (,) <$> waitExitCodeSTM p <*> getStdout p
