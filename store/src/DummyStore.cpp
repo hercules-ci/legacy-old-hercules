@@ -10,14 +10,15 @@
 
 namespace nix {
 
-class HerculesStore : public Store {
+// 'HerculesStore' behaves exactly the same as the BaseStore from which it
+// inherits, with the exception that the 'buildPaths' method is implemented by
+// an external server.
+template <class BaseStore> class HerculesStore : public BaseStore {
 public:
   ~HerculesStore(){};
 
-  HerculesStore(const Store::Params &params,
-                std::unique_ptr<Store> underlyingStore,
-                const std::string &something)
-      : Store(params), underlyingStore(std::move(underlyingStore)){};
+  HerculesStore(const Store::Params &params, const std::string &something)
+      : Store(params), BaseStore(params){};
 
   std::string getUri() override;
   PathSet queryAllValidPaths() override;
@@ -50,12 +51,10 @@ public:
 
 private:
   [[noreturn]] void notImpl(const std::string &operation);
-
-  std::unique_ptr<Store> underlyingStore;
 };
 
-void HerculesStore::notImpl(const std::string &operation) {
-  std::cerr << operation << std::endl;
+template <class BaseStore>
+void HerculesStore<BaseStore>::notImpl(const std::string &operation) {
   throw Error(operation + " is not implemented for the Hercules Store");
 }
 
@@ -64,76 +63,119 @@ void HerculesStore::notImpl(const std::string &operation) {
     notImpl(__PRETTY_FUNCTION__);                                              \
   } while (0)
 
-std::string HerculesStore::getUri() { NOT_IMPL; }
+template <class BaseStore> std::string HerculesStore<BaseStore>::getUri() {
+  NOT_IMPL;
+}
 
-PathSet HerculesStore::queryAllValidPaths() { NOT_IMPL; }
+template <class BaseStore>
+PathSet HerculesStore<BaseStore>::queryAllValidPaths() {
+  NOT_IMPL;
+}
 
-void HerculesStore::queryPathInfoUncached(
+template <class BaseStore>
+void HerculesStore<BaseStore>::queryPathInfoUncached(
     const Path &path,
     std::function<void(std::shared_ptr<ValidPathInfo>)> success,
     std::function<void(std::exception_ptr exc)> failure) {
   NOT_IMPL;
 }
 
-void HerculesStore::queryReferrers(const Path &path, PathSet &referrers) {
+template <class BaseStore>
+void HerculesStore<BaseStore>::queryReferrers(const Path &path,
+                                              PathSet &referrers) {
   NOT_IMPL;
 }
 
-PathSet HerculesStore::queryDerivationOutputs(const Path &path) { NOT_IMPL; }
-
-StringSet HerculesStore::queryDerivationOutputNames(const Path &path) {
+template <class BaseStore>
+PathSet HerculesStore<BaseStore>::queryDerivationOutputs(const Path &path) {
   NOT_IMPL;
 }
 
-Path HerculesStore::queryPathFromHashPart(const string &hashPart) { NOT_IMPL; }
-
-void HerculesStore::addToStore(const ValidPathInfo &info,
-                               const ref<std::string> &nar, bool repair,
-                               bool dontCheckSigs,
-                               std::shared_ptr<FSAccessor> accessor) {
+template <class BaseStore>
+StringSet
+HerculesStore<BaseStore>::queryDerivationOutputNames(const Path &path) {
   NOT_IMPL;
 }
 
-Path HerculesStore::addToStore(const string &name, const Path &srcPath,
-                               bool recursive, HashType hashAlgo,
-                               PathFilter &filter, bool repair) {
-  return underlyingStore->addToStore(name, srcPath, recursive, hashAlgo, filter, repair);
-}
-
-Path HerculesStore::addTextToStore(const string &name, const string &s,
-                                   const PathSet &references, bool repair) {
-  return underlyingStore->addTextToStore(name, s, references, repair);
-}
-
-void HerculesStore::narFromPath(const Path &path, Sink &sink) { NOT_IMPL; }
-
-void HerculesStore::buildPaths(const PathSet &paths, BuildMode buildMode) {
+template <class BaseStore>
+Path HerculesStore<BaseStore>::queryPathFromHashPart(const string &hashPart) {
   NOT_IMPL;
 }
 
-BuildResult HerculesStore::buildDerivation(const Path &drvPath,
-                                           const BasicDerivation &drv,
-                                           BuildMode buildMode) {
+template <class BaseStore>
+void HerculesStore<BaseStore>::addToStore(
+    const ValidPathInfo &info, const ref<std::string> &nar, bool repair,
+    bool dontCheckSigs, std::shared_ptr<FSAccessor> accessor) {
   NOT_IMPL;
 }
 
-void HerculesStore::ensurePath(const Path &path) { NOT_IMPL; }
+template <class BaseStore>
+Path HerculesStore<BaseStore>::addToStore(const string &name,
+                                          const Path &srcPath, bool recursive,
+                                          HashType hashAlgo, PathFilter &filter,
+                                          bool repair) {
+  return BaseStore::addToStore(name, srcPath, recursive, hashAlgo, filter,
+                               repair);
+}
 
-void HerculesStore::addTempRoot(const Path &path) { NOT_IMPL; }
+template <class BaseStore>
+Path HerculesStore<BaseStore>::addTextToStore(const string &name,
+                                              const string &s,
+                                              const PathSet &references,
+                                              bool repair) {
+  return BaseStore::addTextToStore(name, s, references, repair);
+}
 
-void HerculesStore::addIndirectRoot(const Path &path) { NOT_IMPL; }
-
-Roots HerculesStore::findRoots() { NOT_IMPL; }
-
-void HerculesStore::collectGarbage(const GCOptions &options,
-                                   GCResults &results) {
+template <class BaseStore>
+void HerculesStore<BaseStore>::narFromPath(const Path &path, Sink &sink) {
   NOT_IMPL;
 }
 
-ref<FSAccessor> HerculesStore::getFSAccessor() { NOT_IMPL; }
+template <class BaseStore>
+void HerculesStore<BaseStore>::buildPaths(const PathSet &paths,
+                                          BuildMode buildMode) {
+  return BaseStore::buildPaths(paths, buildMode);
+}
 
-void HerculesStore::addSignatures(const Path &storePath,
-                                  const StringSet &sigs) {
+template <class BaseStore>
+BuildResult HerculesStore<BaseStore>::buildDerivation(
+    const Path &drvPath, const BasicDerivation &drv, BuildMode buildMode) {
+  NOT_IMPL;
+}
+
+template <class BaseStore>
+void HerculesStore<BaseStore>::ensurePath(const Path &path) {
+  return BaseStore::ensurePath(path);
+}
+
+template <class BaseStore>
+void HerculesStore<BaseStore>::addTempRoot(const Path &path) {
+  NOT_IMPL;
+}
+
+template <class BaseStore>
+void HerculesStore<BaseStore>::addIndirectRoot(const Path &path) {
+  return BaseStore::addIndirectRoot(path);
+}
+
+template <class BaseStore> Roots HerculesStore<BaseStore>::findRoots() {
+  NOT_IMPL;
+}
+
+template <class BaseStore>
+void HerculesStore<BaseStore>::collectGarbage(const GCOptions &options,
+                                              GCResults &results) {
+  NOT_IMPL;
+}
+
+template <class BaseStore>
+ref<FSAccessor> HerculesStore<BaseStore>::getFSAccessor() {
+  return BaseStore::getFSAccessor();
+}
+
+template <class BaseStore>
+void HerculesStore<BaseStore>::addSignatures(const Path &storePath,
+                                             const StringSet &sigs) {
   NOT_IMPL;
 }
 
@@ -165,7 +207,15 @@ regStore([](const std::string &uri,
   const std::string resource(uri, prefix.length());
   std::unique_ptr<Store> underlyingStore(makeUnderlyingStore(resource, params));
 
-  return std::shared_ptr<Store>(
-      std::make_shared<HerculesStore>(params, std::move(underlyingStore), ""));
+  switch (getStoreType(resource, get(params, "state", settings.nixStateDir))) {
+  case tDaemon:
+    return std::shared_ptr<Store>(
+        std::make_shared<HerculesStore<UDSRemoteStore>>(params, ""));
+  case tLocal:
+    return std::shared_ptr<Store>(
+        std::make_shared<HerculesStore<LocalStore>>(params, ""));
+  default:
+    return nullptr;
+  }
 });
 };
