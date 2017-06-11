@@ -9,6 +9,23 @@ You'll need:
 - `Nix installed <http://nixos.org/nix/download.html>`_
 - `Hydra database loaded into Postgresql <https://github.com/peti/hydra-tutorial>`_ for hydra user
 
+To setup the hercules database, execute as Postgres superuser::
+
+    $ CREATE ROLE hercules LOGIN;
+    $ CREATE DATABASE hercules OWNER hercules;
+
+Add the following snippet to your NixOS configuration.nix::
+
+    services.postgresql = {
+      identMap = ''
+        hydra-users YOUR_USER hydra
+        hercules-users YOUR_USER hercules
+      '';
+      authentication = ''
+        local hercules all ident map=hercules-users
+      '';
+    };
+
 
 To build::
 
