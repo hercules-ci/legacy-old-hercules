@@ -44,4 +44,6 @@ migrations =
   [ MigrationInitialization
   , MigrationScript "Create the users table"
                     $(embedFile "src/migrations/create-users.sql")
+  , MigrationScript "Recreate the users table"
+                    $(embedFile "src/migrations/20170709_recreate-users.sql")
   ]
