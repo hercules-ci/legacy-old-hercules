@@ -10,6 +10,7 @@ import Material.Menu as Menu
 import Material.Table as Table
 import Material.Textfield as Textfield
 import Material.Toggles as Toggles
+import Utils2 exposing ((=>))
 
 type alias Model =
   { username : String
@@ -21,11 +22,12 @@ type Msg
   | SetPassword String
   | Submit
 --  | LoginCompleted (Result Http.Error User)
+  | Mdl
 
 type ExternalMsg
   = NoOp
 
-view : LoginModel -> List (Html Msg)
+view : Model -> List (Html Msg)
 view model =
   renderHeader model "Login" Nothing Nothing
     ++ [ Html.form []
@@ -60,7 +62,7 @@ view model =
 update : Msg -> Model -> (( Model, Cmd Msg ), ExternalMsg)
 update msg model =
   case msg of
-    Submit -> crash "TODO"
+    Submit -> Debug.crash "TODO"
     SetUsername s ->
       { model | username = s }
         => Cmd.none
