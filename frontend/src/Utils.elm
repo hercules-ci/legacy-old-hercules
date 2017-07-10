@@ -4,6 +4,7 @@ import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (..)
 import Json.Decode as Json
+import Material
 import Material.Elevation as Elevation
 import Material.Button as Button
 import Material.Color as Color
@@ -11,7 +12,6 @@ import Material.Icon as Icon
 import Material.Options as Options
 import Msg exposing (..)
 import Urls exposing (..)
-import Models exposing (..)
 
 
 menuIcon : String -> Html Msg
@@ -102,38 +102,52 @@ render404 reason =
         [ text reason ]
     ]
 
+type alias Header msg =
+  { title : String
+  , subtitle : Maybe String
+  , createMsg : Maybe msg -- ^ Show create button sending given msg on click
+  }
 
-renderHeader : AppModel -> String -> Maybe String -> Maybe Page -> List (Html Msg)
-renderHeader model name subname page =
-    let
-        subnameHtml =
-            case subname of
-                Nothing ->
-                    []
+type alias MdlCtx msg =
+  { model : Material.Model
+  , msg : Material.Msg msg -> msg
+  }
 
-                Just s ->
-                    [ small [ style [ ( "margin-left", "10px" ) ] ]
-                        [ text s ]
-                    ]
+defaultHeader : String -> Header msg
+defaultHeader title = { title = title, subtitle = Nothing, createMsg = Nothing }
 
-        pageHtml =
-            case page of
-                Nothing ->
-                    []
+subtitle : String -> Header msg -> Header msg
+subtitle s h = { h | subtitle = Just s }
 
-                Just p ->
-                    [ Button.render Mdl
-                        [ 2 ]
-                        model.mdl
-                        [ Button.fab
-                        , Button.colored
-                        , Button.onClick (NewPage p)
-                        , Options.css "margin-left" "20px"
-                        ]
-                        [ Icon.i "add" ]
-                    ]
-    in
-        [ h1
-            [ style [ ( "margin-bottom", "30px" ) ] ]
-            ([ text name ] ++ subnameHtml ++ pageHtml)
+createButton : msg -> Header msg -> Header msg
+createButton msg h = { h | createMsg = Just msg }
+
+renderHeader : MdlCtx msg -> Header msg -> List (Html msg)
+renderHeader mdlCtx h =
+  let
+    subtitleHtml = Maybe.map (
+      small [
+        style [ ( "margin-left", "10px" ) ]
+      ] << List.singleton << text)
+      h.subtitle
+
+    pageHtml = Maybe.map (\p ->
+      Button.render mdlCtx.msg
+        [2]
+        mdlCtx.model
+        [ Button.fab
+        , Button.colored
+        , Button.onClick p
+        , Options.css "margin-left" "20px"
         ]
+        [ Icon.i "add" ]
+      ) h.createMsg
+  in
+    [ h1
+        [ style [ ( "margin-bottom", "30px" ) ] ]
+        ([ text h.title ] ++ catMaybes [subtitleHtml, pageHtml])
+    ]
+  
+
+catMaybes : List (Maybe a) -> List a
+catMaybes = List.filterMap identity

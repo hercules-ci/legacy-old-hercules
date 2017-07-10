@@ -15,12 +15,14 @@ import Urls as Urls exposing (..)
 
 view : AppModel -> List (Html Msg)
 view model =
-    case model.jobsetPage of
+  let
+    mdlCtx = { model = model.mdl, msg = Mdl }
+  in case model.jobsetPage of
         Err _ ->
             [ p [] [ text "TODO" ] ]
 
         Ok jobset ->
-            renderHeader model "Jobset" (Just jobset.name) Nothing
+            renderHeader mdlCtx (defaultHeader "Jobset" |> subtitle jobset.name )
                 ++ [ Tabs.render Mdl
                         [ 4 ]
                         model.mdl
