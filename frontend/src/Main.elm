@@ -12,6 +12,7 @@ import View exposing (..)
 import Urls exposing (..)
 
 
+
 init : Flags -> Navigation.Location -> ( AppModel, Cmd Msg )
 init flags location =
     let

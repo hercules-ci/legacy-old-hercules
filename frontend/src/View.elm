@@ -12,6 +12,7 @@ import Material.Footer as Footer
 import Components.Navbar as Navbar
 import Pages.Project exposing (..)
 import Pages.Jobset as Jobset exposing (..)
+import Pages.Login exposing (..)
 import Msg exposing (..)
 import Models exposing (..)
 import Utils exposing (..)
@@ -80,6 +81,9 @@ pageToView model =
     case model.currentPage of
         Home ->
             Pages.Project.view model model.currentPage
+
+        Login ->
+            Pages.Login.view model model.currentPage
 
         Project name ->
             Pages.Project.view model model.currentPage

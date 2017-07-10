@@ -10,6 +10,7 @@ import UrlParser exposing (Parser, (</>), map, int, oneOf, s, string)
 -}
 type Page
     = Home
+    | Login
     | Project String
     | NewProject
     | Jobset String String
@@ -19,6 +20,7 @@ pageParser : Parser (Page -> a) a
 pageParser =
     oneOf
         [ map Home (s "")
+        , map Login (s "login")
         , map Project (s "project" </> string)
         , map NewProject (s "create-project")
         , map Jobset (s "jobset" </> string </> string)
@@ -30,6 +32,9 @@ pageToURL page =
     case page of
         Home ->
             "/"
+
+        Login ->
+            "/login"
 
         Project name ->
             "/project/" ++ name
@@ -46,6 +51,9 @@ pageToTitle page =
     case page of
         Home ->
             "Projects"
+
+        Login ->
+            "Login"
 
         Project name ->
             "Project " ++ name

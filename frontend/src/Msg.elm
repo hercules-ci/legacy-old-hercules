@@ -5,18 +5,14 @@ import Http
 import Navigation
 import Components.LiveSearch as LiveSearch
 import Urls exposing (Page)
-
-
-type LoginType
-    = Hydra
-    | Google
+import Pages.Login as Login
 
 
 type Msg
     = Mdl (Material.Msg Msg)
     | FetchSucceed String
     | FetchFail Http.Error
-    | LoginUserClick LoginType
+    | LoginMsg Login.Msg
     | LogoutUserClick
     | PreferencesClick
     | LiveSearchMsg LiveSearch.Msg

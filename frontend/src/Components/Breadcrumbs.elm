@@ -51,6 +51,9 @@ breadCrumbs model =
                 Home ->
                     []
 
+                Login ->
+                    [ Breadcrumb "Login" Nothing ]
+
                 NewProject ->
                     [ Breadcrumb "New Project" Nothing ]
 
