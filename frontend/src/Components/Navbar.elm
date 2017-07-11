@@ -33,14 +33,9 @@ view model =
             case model.user of
                 Nothing ->
                     [ Menu.item
-                        [ Menu.onSelect <| LoginUserClick Google ]
+                        [ Menu.onSelect <| LoginUserClick ]
                         [ menuIcon "input"
-                        , text "Sign in with Google"
-                        ]
-                    , Menu.item
-                        [ Menu.onSelect <| LoginUserClick Hydra ]
-                        [ menuIcon "input"
-                        , text "Sign in with a password"
+                        , text "Sign in"
                         ]
                     ]
 

@@ -22,14 +22,16 @@ update msg model =
         (FetchFail msg, _) ->
             ( model, Cmd.none )
 
-        (LoginMsg subMsg, Login loginModel) ->
+        (LoginUserClick, _) ->
+            ( model, Navigation.newUrl Login)
+
+        (LoginMsg subMsg, Login subModel) ->
             let
-              ((pageModel, cmd, msgFromPage) = Login.update subMsg subModel
+              ((pageModel, cmd), msgFromPage) = Login.update subMsg subModel
               newModel = case msgFromPage of
-                Login.NoOp => model
+                Login.NoOp -> model
             in
-            newModel
-              => Cmd.map LoginMsg cmd
+              ( newModel, Cmd.map LoginMsg cmd )
 
         (LogoutUserClick, _) ->
             -- TODO: well, should we cleanup something?

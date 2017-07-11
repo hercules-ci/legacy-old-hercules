@@ -12,6 +12,7 @@ type Msg
     = Mdl (Material.Msg Msg)
     | FetchSucceed String
     | FetchFail Http.Error
+    | LoginUserClick
     | LoginMsg Login.Msg
     | LogoutUserClick
     | PreferencesClick
