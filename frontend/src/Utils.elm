@@ -10,11 +10,10 @@ import Material.Button as Button
 import Material.Color as Color
 import Material.Icon as Icon
 import Material.Options as Options
-import Msg exposing (..)
 import Urls exposing (..)
 
 
-menuIcon : String -> Html Msg
+menuIcon : String -> Html msg
 menuIcon name =
     Icon.view name [ Options.css "width" "40px" ]
 
@@ -24,15 +23,15 @@ onPreventDefaultClick message =
     onWithOptions "click" { defaultOptions | preventDefault = True } (Json.succeed message)
 
 
-onClickPage : Page -> List (Attribute Msg)
-onClickPage page =
+onClickPage : (Page -> msg) -> Page -> List (Attribute msg)
+onClickPage gotoMsg page =
     [ style [ ( "pointer", "cursor" ) ]
     , href (pageToURL page)
-    , onPreventDefaultClick (NewPage page)
+    , onPreventDefaultClick (gotoMsg page)
     ]
 
 
-optionalTag : Bool -> Html Msg -> Html Msg
+optionalTag : Bool -> Html msg -> Html msg
 optionalTag doInclude html =
     if doInclude then
         html
@@ -40,7 +39,7 @@ optionalTag doInclude html =
         text ""
 
 
-statusLabels : Int -> Int -> Int -> List (Html Msg)
+statusLabels : Int -> Int -> Int -> List (Html msg)
 statusLabels succeeded failed queued =
     [ optionalTag (succeeded > 0)
         (badge
@@ -63,7 +62,7 @@ statusLabels succeeded failed queued =
     ]
 
 
-badge : Color.Color -> List (Options.Property c Msg) -> List (Html Msg) -> Html Msg
+badge : Color.Color -> List (Options.Property c msg) -> List (Html msg) -> Html msg
 badge color properties content =
     Options.span
         ([ Options.css "border-radius" "9px"
@@ -87,12 +86,12 @@ badge color properties content =
         content
 
 
-whiteBadge : List (Options.Property c Msg) -> List (Html Msg) -> Html Msg
+whiteBadge : List (Options.Property c msg) -> List (Html msg) -> Html msg
 whiteBadge properties content =
     badge Color.white properties content
 
 
-render404 : String -> List (Html Msg)
+render404 : String -> List (Html msg)
 render404 reason =
     [ Options.div
         [ Elevation.e2

@@ -93,7 +93,7 @@ view model =
                                                 Table.tr []
                                                     [ Table.td []
                                                         [ a
-                                                            (onClickPage (Urls.Jobset "123" "foo"))
+                                                            (onClickPage NewPage (Urls.Jobset "123" "foo"))
                                                             [ text "123" ]
                                                         ]
                                                     , Table.td [] [ text "snabbBsrc → e1fdc74" ]

@@ -137,7 +137,7 @@ renderProject model i project =
         ]
         [ h3
             []
-            [ a (onClickPage (Urls.Project project.name))
+            [ a (onClickPage NewPage (Urls.Project project.name))
                 [ Options.span
                     [ Options.css "margin" "16px" ]
                     [ text (project.name) ]
@@ -190,7 +190,7 @@ renderProject model i project =
                                 Table.tr []
                                     [ Table.td []
                                         [ a
-                                            (onClickPage (Urls.Jobset project.name jobset.id))
+                                            (onClickPage NewPage (Urls.Jobset project.name jobset.id))
                                             [ text jobset.name ]
                                         ]
                                     , Table.td [] [ text jobset.description ]
