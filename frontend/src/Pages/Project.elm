@@ -44,10 +44,11 @@ view model page =
 projectsView : AppModel -> List Project -> List (Html Msg)
 projectsView model projects =
     let
+        mdlCtx = { model = model.mdl, msg = Mdl }
         newprojects =
             List.indexedMap (renderProject model) (search projects)
     in
-        renderHeader model "Projects" Nothing (Just NewProject)
+        renderHeader mdlCtx (defaultHeader "Projects" |> createButton (NewPage NewProject))
             ++ if List.isEmpty newprojects then
                 render404 "Zero projects. Maybe add one?"
                else
@@ -56,7 +57,9 @@ projectsView model projects =
 
 newProjectView : AppModel -> List (Html Msg)
 newProjectView model =
-    renderHeader model "Add a new project" Nothing Nothing
+    let
+        mdlCtx = { model = model.mdl, msg = Mdl }
+    in renderHeader mdlCtx (defaultHeader "Add a new project")
         ++ [ Html.form []
                 [ Textfield.render Mdl
                     [ 5 ]
@@ -134,7 +137,7 @@ renderProject model i project =
         ]
         [ h3
             []
-            [ a (onClickPage (Urls.Project project.name))
+            [ a (onClickPage NewPage (Urls.Project project.name))
                 [ Options.span
                     [ Options.css "margin" "16px" ]
                     [ text (project.name) ]
@@ -187,7 +190,7 @@ renderProject model i project =
                                 Table.tr []
                                     [ Table.td []
                                         [ a
-                                            (onClickPage (Urls.Jobset project.name jobset.id))
+                                            (onClickPage NewPage (Urls.Jobset project.name jobset.id))
                                             [ text jobset.name ]
                                         ]
                                     , Table.td [] [ text jobset.description ]

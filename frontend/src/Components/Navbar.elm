@@ -72,7 +72,7 @@ view model =
                          , class "logo"
                          , style [ ( "height", "37px" ), ( "margin", "5px" ) ]
                          ]
-                            ++ (onClickPage Home)
+                            ++ (onClickPage NewPage Home)
                         )
                         []
                  ]
