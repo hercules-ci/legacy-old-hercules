@@ -10,7 +10,7 @@ import Material.Button as Button
 import Material.Color as Color
 import Material.Icon as Icon
 import Material.Options as Options
-import Urls exposing (..)
+import Route exposing (..)
 
 (=>) : a -> b -> ( a, b )
 (=>) =
@@ -33,10 +33,10 @@ onPreventDefaultClick message =
     onWithOptions "click" { defaultOptions | preventDefault = True } (Json.succeed message)
 
 
-onClickPage : (Page -> msg) -> Page -> List (Attribute msg)
+onClickPage : (Route -> msg) -> Route -> List (Attribute msg)
 onClickPage gotoMsg page =
     [ style [ ( "pointer", "cursor" ) ]
-    , href (pageToURL page)
+    , href (routeToURL page)
     , onPreventDefaultClick (gotoMsg page)
     ]
 

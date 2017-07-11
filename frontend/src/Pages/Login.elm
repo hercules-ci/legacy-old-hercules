@@ -29,6 +29,9 @@ type Msg
 type ExternalMsg
   = NoOp
 
+initialModel : Model
+initialModel = { username = "", password = "", mdl = Material.model }
+
 view : Model -> List (Html Msg)
 view model =
   let

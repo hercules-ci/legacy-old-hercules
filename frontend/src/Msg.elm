@@ -4,7 +4,7 @@ import Material
 import Http
 import Navigation
 import Components.LiveSearch as LiveSearch
-import Urls exposing (Page)
+import Route exposing (..)
 import Pages.Login as Login
 
 
@@ -17,6 +17,7 @@ type Msg
     | LogoutUserClick
     | PreferencesClick
     | LiveSearchMsg LiveSearch.Msg
-    | NewPage Page
     | ClickCreateProject
-    | UrlChange Navigation.Location
+    | GotoRoute Route
+
+    | UnsafeSetRoute (Maybe Route)

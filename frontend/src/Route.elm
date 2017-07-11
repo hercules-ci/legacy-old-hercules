@@ -1,14 +1,13 @@
-module Urls exposing (..)
+module Route exposing (..)
 
-import Debug
-import Navigation
+import Navigation exposing (Location)
 import String
-import UrlParser exposing (Parser, (</>), map, int, oneOf, s, string)
+import UrlParser exposing (Parser, (</>), map, int, oneOf, s, string, parsePath)
 
 
-{-| Main type representing current url/page
+{-| Main type representing current url/route
 -}
-type Page
+type Route
     = Home
     | Login
     | Project String
@@ -16,8 +15,8 @@ type Page
     | Jobset String String
 
 
-pageParser : Parser (Page -> a) a
-pageParser =
+routeParser : Parser (Route -> a) a
+routeParser =
     oneOf
         [ map Home (s "")
         , map Login (s "login")
@@ -27,9 +26,9 @@ pageParser =
         ]
 
 
-pageToURL : Page -> String
-pageToURL page =
-    case page of
+routeToURL : Route -> String
+routeToURL route =
+    case route of
         Home ->
             "/"
 
@@ -46,9 +45,9 @@ pageToURL page =
             "/jobset/" ++ project ++ "/" ++ jobset
 
 
-pageToTitle : Page -> String
-pageToTitle page =
-    case page of
+routeToTitle : Route -> String
+routeToTitle route =
+    case route of
         Home ->
             "Projects"
 
@@ -63,3 +62,13 @@ pageToTitle page =
 
         Jobset project jobset ->
             "Jobset " ++ jobset ++ " of project " ++ project
+
+modifyUrl : Route -> Cmd msg
+modifyUrl = routeToURL >> Navigation.modifyUrl
+
+fromLocation : Location -> Maybe Route
+fromLocation location =
+  if String.isEmpty location.pathname then
+    Just Home
+  else
+    parsePath routeParser location

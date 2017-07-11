@@ -11,7 +11,7 @@ import Msg exposing (..)
 import Models exposing (AppModel)
 import Components.Breadcrumbs exposing (breadCrumbs)
 import Components.LiveSearch as LiveSearch
-import Urls exposing (..)
+import Route exposing (..)
 import Utils exposing (..)
 
 
@@ -33,7 +33,7 @@ view model =
             case model.user of
                 Nothing ->
                     [ Menu.item
-                        [ Menu.onSelect <| LoginUserClick ]
+                        [ Menu.onSelect <| GotoRoute Login ]
                         [ menuIcon "input"
                         , text "Sign in"
                         ]
@@ -67,7 +67,7 @@ view model =
                          , class "logo"
                          , style [ ( "height", "37px" ), ( "margin", "5px" ) ]
                          ]
-                            ++ (onClickPage NewPage Home)
+                            ++ (onClickPage GotoRoute Home)
                         )
                         []
                  ]

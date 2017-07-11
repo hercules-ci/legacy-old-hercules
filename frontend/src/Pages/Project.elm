@@ -14,18 +14,18 @@ import Material.Toggles as Toggles
 import Components.LiveSearch exposing (search)
 import Components.Help exposing (..)
 import Msg exposing (..)
-import Models exposing (Project, AppModel)
-import Urls exposing (..)
+import Models exposing (Project, AppModel, Page(..))
+import Route as Route exposing (..)
 import Utils exposing (..)
 
 
-view : AppModel -> Page -> List (Html Msg)
-view model page =
-    case page of
-        Home ->
+view : AppModel -> List (Html Msg)
+view model =
+    case model.currentPage of
+        HomePage ->
             projectsView model model.projects
 
-        Project name ->
+        ProjectPage name ->
             case List.head (List.filter (\p -> p.name == name) model.projects) of
                 Just project ->
                     [ renderProject model 0 project ]
@@ -33,7 +33,7 @@ view model page =
                 Nothing ->
                     render404 ("Project " ++ name ++ " does not exist.")
 
-        NewProject ->
+        NewProjectPage ->
             newProjectView model
 
         -- TODO: get rid of this
@@ -48,7 +48,7 @@ projectsView model projects =
         newprojects =
             List.indexedMap (renderProject model) (search projects)
     in
-        renderHeader mdlCtx (defaultHeader "Projects" |> createButton (NewPage NewProject))
+        renderHeader mdlCtx (defaultHeader "Projects" |> createButton (GotoRoute NewProject))
             ++ if List.isEmpty newprojects then
                 render404 "Zero projects. Maybe add one?"
                else
@@ -137,7 +137,7 @@ renderProject model i project =
         ]
         [ h3
             []
-            [ a (onClickPage NewPage (Urls.Project project.name))
+            [ a (onClickPage GotoRoute (Route.Project project.name))
                 [ Options.span
                     [ Options.css "margin" "16px" ]
                     [ text (project.name) ]
@@ -190,7 +190,7 @@ renderProject model i project =
                                 Table.tr []
                                     [ Table.td []
                                         [ a
-                                            (onClickPage NewPage (Urls.Jobset project.name jobset.id))
+                                            (onClickPage GotoRoute (Jobset project.name jobset.id))
                                             [ text jobset.name ]
                                         ]
                                     , Table.td [] [ text jobset.description ]

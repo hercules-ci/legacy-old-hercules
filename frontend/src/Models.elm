@@ -3,8 +3,8 @@ module Models exposing (..)
 import Material
 import Maybe
 import Date
-import Urls exposing (..)
-
+import Pages.Login as Login
+import Route exposing (Route)
 
 type alias Flags =
     { backendURL : String
@@ -96,6 +96,15 @@ type AjaxError msg
     | Loading
 
 
+{-| Main type representing model of current page
+-}
+type Page
+    = HomePage
+    | LoginPage Login.Model
+    | ProjectPage String
+    | NewProjectPage
+    | JobsetPage2 String String
+
 type alias AppModel =
     { alert : Maybe Alert
     , hydraConfig : HydraConfig
@@ -111,8 +120,9 @@ type alias AppModel =
     }
 
 
-initialModel : Page -> Flags -> AppModel
-initialModel page flags =
+
+initialModel : Route -> Flags -> AppModel
+initialModel _ flags =
     let
         jobsets =
             [ { id = "release-16.03"
@@ -139,7 +149,7 @@ initialModel page flags =
         , user = Nothing
         , backendURL = flags.backendURL
         , mdl = Material.model
-        , currentPage = page
+        , currentPage = HomePage
         , searchString = ""
         , hydraConfig =
             -- TODO: downsize logo, serve it with webpack

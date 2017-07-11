@@ -2,7 +2,6 @@ module Pages.Jobset exposing (..)
 
 import Html exposing (..)
 import Html.Attributes exposing (..)
-import Material.Menu as Menu
 import Material.List as List
 import Material.Options as Options
 import Material.Tabs as Tabs
@@ -10,7 +9,7 @@ import Material.Table as Table
 import Models exposing (..)
 import Msg exposing (..)
 import Utils exposing (..)
-import Urls as Urls exposing (..)
+import Route exposing (..)
 
 
 view : AppModel -> List (Html Msg)
@@ -93,7 +92,7 @@ view model =
                                                 Table.tr []
                                                     [ Table.td []
                                                         [ a
-                                                            (onClickPage NewPage (Urls.Jobset "123" "foo"))
+                                                            (onClickPage GotoRoute (Route.Jobset "123" "foo"))
                                                             [ text "123" ]
                                                         ]
                                                     , Table.td [] [ text "snabbBsrc → e1fdc74" ]

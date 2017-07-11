@@ -1,18 +1,19 @@
-port module Update exposing (..)
+module Update exposing (..)
 
 import Material
 import Navigation
 import Models exposing (..)
 import Msg exposing (..)
 import Components.LiveSearch as LiveSearch
-import Urls exposing (..)
+import Route exposing (..)
 import UrlParser exposing (parsePath)
 import Pages.Login as Login
-
+import Ports
+import Utils exposing ((=>))
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
 update msg model =
-    case (msg, page) of
+    case (msg, model.currentPage) of
         (Mdl msg_, _) ->
             Material.update msg_ model
 
@@ -23,15 +24,16 @@ update msg model =
             ( model, Cmd.none )
 
         (LoginUserClick, _) ->
-            ( model, Navigation.newUrl Login)
+            ( model, Route.modifyUrl Login)
 
-        (LoginMsg subMsg, Login subModel) ->
+        (LoginMsg subMsg, LoginPage subModel) ->
             let
               ((pageModel, cmd), msgFromPage) = Login.update subMsg subModel
               newModel = case msgFromPage of
                 Login.NoOp -> model
             in
-              ( newModel, Cmd.map LoginMsg cmd )
+              { newModel | currentPage = LoginPage pageModel }
+                => Cmd.map LoginMsg cmd
 
         (LogoutUserClick, _) ->
             -- TODO: well, should we cleanup something?
@@ -47,22 +49,32 @@ update msg model =
             in
                 ( newmodel, Cmd.map LiveSearchMsg cmds )
 
-        (NewPage page, _) ->
-            ( model, Navigation.newUrl (pageToURL page) )
+        (GotoRoute route, _) ->
+          (model, Route.modifyUrl route)
+
+        (UnsafeSetRoute route, _) ->
+            setRoute route model
 
         (ClickCreateProject, _) ->
             -- TODO: http
             ( model, Cmd.none )
 
-        (UrlChange location, _) ->
-            let
-                page = Maybe.withDefault Home (parsePath pageParser location)
-            in
-            ( { model | currentPage = page }
-            , title (pageToTitle page)
-            )
+        ( _, _ ) ->
+          -- Disregard incoming messages that arrived for the wrong page
+          model => Cmd.none
 
--- Ports
+setRoute : Maybe Route -> AppModel -> ( AppModel, Cmd Msg)
+setRoute route model =
+  case route of
 
+    Nothing -> { model | currentPage = HomePage } => Cmd.none
 
-port title : String -> Cmd msg
+    Just Home -> { model | currentPage = HomePage } => Cmd.none
+
+    Just Login -> { model | currentPage = LoginPage Login.initialModel } => Cmd.none
+
+    Just (Project p) -> { model | currentPage = ProjectPage p } => Cmd.none
+    
+    Just NewProject -> { model | currentPage = NewProjectPage } => Cmd.none
+
+    Just (Jobset a b) -> { model | currentPage = JobsetPage2 a b } => Cmd.none

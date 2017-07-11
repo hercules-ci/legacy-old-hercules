@@ -16,7 +16,6 @@ import Pages.Login as Login
 import Msg exposing (..)
 import Models exposing (..)
 import Utils exposing (..)
-import Urls exposing (..)
 
 
 view : AppModel -> Html Msg
@@ -79,19 +78,20 @@ viewBody model =
 pageToView : AppModel -> List (Html Msg)
 pageToView model =
     case model.currentPage of
-        Home ->
-            Pages.Project.view model model.currentPage
+        HomePage ->
+            Pages.Project.view model
 
-        Login ->
-            Login.view model model.currentPage
+        LoginPage m ->
+            Login.view m
+              |> List.map (Html.map LoginMsg)
 
-        Project name ->
-            Pages.Project.view model model.currentPage
+        ProjectPage name ->
+            Pages.Project.view model
 
-        NewProject ->
-            Pages.Project.view model model.currentPage
+        NewProjectPage ->
+            Pages.Project.view model
 
-        Jobset projectName jobsetName ->
+        JobsetPage2 projectName jobsetName ->
             case List.head (List.filter (\p -> p.name == projectName) model.projects) of
                 Just project ->
                     case List.head (List.filter (\j -> j.name == jobsetName) project.jobsets) of

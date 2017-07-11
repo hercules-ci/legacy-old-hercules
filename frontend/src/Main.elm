@@ -9,23 +9,23 @@ import Msg exposing (..)
 import Models exposing (..)
 import Update exposing (..)
 import View exposing (..)
-import Urls exposing (..)
-
+import Route exposing (..)
+import Ports
 
 
 init : Flags -> Navigation.Location -> ( AppModel, Cmd Msg )
 init flags location =
     let
-        page = Maybe.withDefault Home (parsePath pageParser location)
-        model = initialModel page flags
+        route = Maybe.withDefault Home (parsePath routeParser location)
+        model = initialModel route flags
     in model ! [ Material.init Mdl
-               , title (pageToTitle page)
+               , Ports.title (routeToTitle route)
                ]
 
 
 main : Program Flags AppModel Msg
 main =
-    Navigation.programWithFlags UrlChange
+    Navigation.programWithFlags (Route.fromLocation >> UnsafeSetRoute)
         { init = init
         , update = update
         , view = view

@@ -7,13 +7,13 @@ import Material.Icon as Icon
 import Material.Options as Options
 import Msg exposing (..)
 import Models exposing (..)
-import Urls as Urls exposing (..)
+import Route as Route exposing (..)
 import Utils exposing (onClickPage)
 
 
 type alias Breadcrumb =
     { name : String
-    , page : Maybe Page
+    , page : Maybe Route
     }
 
 
@@ -21,12 +21,12 @@ renderBreadcrumbs : List Breadcrumb -> List (Html Msg)
 renderBreadcrumbs breadcrumbs =
     let
         home =
-            a (onClickPage NewPage Home) [ text "Hydra" ]
+            a (onClickPage GotoRoute Home) [ text "Hydra" ]
 
         render breadcrumb =
             case breadcrumb.page of
                 Just page ->
-                    a (onClickPage NewPage page)
+                    a (onClickPage GotoRoute page)
                         [ text breadcrumb.name ]
 
                 Nothing ->
@@ -48,20 +48,20 @@ breadCrumbs model =
     let
         breadcrumbs =
             case model.currentPage of
-                Home ->
+                HomePage ->
                     []
 
-                Login ->
+                LoginPage _ ->
                     [ Breadcrumb "Login" Nothing ]
 
-                NewProject ->
+                NewProjectPage ->
                     [ Breadcrumb "New Project" Nothing ]
 
-                Project project ->
+                ProjectPage project ->
                     [ Breadcrumb project Nothing ]
 
-                Jobset project jobset ->
-                    [ Breadcrumb project (Just (Urls.Project project))
+                JobsetPage2 project jobset ->
+                    [ Breadcrumb project (Just (Route.Project project))
                     , Breadcrumb jobset Nothing
                     ]
     in
