@@ -3,11 +3,18 @@ cache:
   directories:
   - frontend/elm-stuff
   - frontend/node_modules
+
 script:
 - pushd frontend
 - nix-shell --run "npm i && elm package install -y" -j 8
 - popd
 - nix-build
+
+matrix:
+  include:
+    - os: osx
+    - os: linux
+
 deploy:
   provider: s3
   access_key_id: AKIAJETSFTAMXGNCGC6Q
