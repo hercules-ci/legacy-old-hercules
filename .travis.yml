@@ -3,7 +3,6 @@ cache:
   directories:
   - frontend/elm-stuff
   - frontend/node_modules
-
 script:
 - pushd frontend
 - nix-shell --run "npm i && elm package install -y" -j 8
