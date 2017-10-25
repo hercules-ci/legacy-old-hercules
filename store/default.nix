@@ -1,6 +1,6 @@
 { pkgs ? import <nixpkgs> {} }:
 
-let p = { stdenv, fetchurl, cmake, nixUnstable, boost }:
+let p = { stdenv, fetchurl, cmake, nixUnstable, boost, clang-tools }:
         stdenv.mkDerivation rec {
           name = "dummy-store";
         
@@ -10,6 +10,10 @@ let p = { stdenv, fetchurl, cmake, nixUnstable, boost }:
               baseNameOf path != "build") 
             ./.;
 
-          buildInputs = [ cmake nixUnstable boost ];
+          buildInputs = [ cmake nixUnstable boost clang-tools ];
+
+          passthru = {
+            nix = nixUnstable;
+          };
         };
 in pkgs.callPackage p {}

@@ -33,6 +33,7 @@ rec {
   # derivation which builds the haskell package at that source location.
   haskellPackageGen = { doFilter ? true
                       , doHaddock ? true
+                      , extraAttrs ? {} # Any extra attrs to mkDerivation
                       , extraEnvPackages ? [] # Any extra packages to be made available in the developer shell only
                       }: src:
     let filteredSrc = builtins.filterSource (path: type:
@@ -49,8 +50,10 @@ rec {
 
         drv = haskellPackages.callPackage package {};
 
-        envWithExtras = pkgs.lib.overrideDerivation drv.env (attrs: {
+        drvWithExtras = pkgs.lib.overrideDerivation drv (attrs: extraAttrs);
+
+        envWithExtras = pkgs.lib.overrideDerivation drvWithExtras.env (attrs: {
           buildInputs = attrs.buildInputs ++ extraEnvPackages;
-        });
-    in drv // { env = envWithExtras; };
+        } // extraAttrs);
+    in drvWithExtras // { env = envWithExtras; };
 }

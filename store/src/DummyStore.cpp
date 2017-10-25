@@ -77,7 +77,7 @@ void HerculesStore<BaseStore>::queryPathInfoUncached(
     const Path &path,
     std::function<void(std::shared_ptr<ValidPathInfo>)> success,
     std::function<void(std::exception_ptr exc)> failure) {
-  NOT_IMPL;
+  return BaseStore::queryPathInfoUncached(path, success, failure);
 }
 
 template <class BaseStore>
@@ -134,6 +134,11 @@ void HerculesStore<BaseStore>::narFromPath(const Path &path, Sink &sink) {
 template <class BaseStore>
 void HerculesStore<BaseStore>::buildPaths(const PathSet &paths,
                                           BuildMode buildMode) {
+  std::cerr << "buildPaths called for" << std::endl;
+  std::for_each(paths.begin(), paths.end(), [](const Path &path) {
+    std::cerr << "  - " << path << std::endl;
+  });
+
   return BaseStore::buildPaths(paths, buildMode);
 }
 
