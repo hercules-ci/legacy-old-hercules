@@ -1,5 +1,6 @@
 module Update exposing (..)
 
+import Debug
 import Material
 import Navigation
 import Models exposing (..)
@@ -13,7 +14,7 @@ import Utils exposing ((=>))
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )
 update msg model =
-    case (msg, model.currentPage) of
+    case (Debug.log "msg" msg, model.currentPage) of
         (Mdl msg_, _) ->
             Material.update msg_ model
 
@@ -28,7 +29,7 @@ update msg model =
 
         (LoginMsg subMsg, LoginPage subModel) ->
             let
-              ((pageModel, cmd), msgFromPage) = Login.update subMsg subModel
+              ((pageModel, cmd), msgFromPage) = Debug.log "Upd:" (Login.update subMsg subModel)
               newModel = case msgFromPage of
                 Login.NoOp -> model
             in
