@@ -2,7 +2,6 @@ module Msg exposing (..)
 
 import Material
 import Http
-import Navigation
 import Components.LiveSearch as LiveSearch
 import Route exposing (..)
 import Pages.Login as Login

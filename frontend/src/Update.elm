@@ -2,14 +2,11 @@ module Update exposing (..)
 
 import Debug
 import Material
-import Navigation
 import Models exposing (..)
 import Msg exposing (..)
 import Components.LiveSearch as LiveSearch
 import Route exposing (..)
-import UrlParser exposing (parsePath)
 import Pages.Login as Login
-import Ports
 import Utils exposing ((=>))
 
 update : Msg -> AppModel -> ( AppModel, Cmd Msg )

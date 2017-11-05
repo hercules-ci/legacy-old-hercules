@@ -1,7 +1,6 @@
 module Components.LiveSearch exposing (update, view, search, Msg)
 
 import Html exposing (..)
-import Html.Events exposing (..)
 import Json.Decode as Json
 import String
 import Material

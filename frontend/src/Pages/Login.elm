@@ -2,19 +2,13 @@ module Pages.Login exposing (..)
 
 import Debug
 import Html exposing (..)
-import Html.Attributes exposing (..)
-import Html.Events exposing (onClick)
 import Http
 import Json.Decode as Decode exposing (Decoder, field, string)
 import Json.Decode.Pipeline as Pipeline exposing (decode, optional)
 import Material
 import Material.Button as Button
 import Material.Options as Options
-import Material.Elevation as Elevation
-import Material.Menu as Menu
-import Material.Table as Table
 import Material.Textfield as Textfield
-import Material.Toggles as Toggles
 import Request.User
 import Route
 import Utils exposing (..)

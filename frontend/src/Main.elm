@@ -4,7 +4,6 @@ import Maybe
 import Material
 import Navigation
 import UrlParser exposing (parsePath)
-import Hercules exposing (..)
 import Msg exposing (..)
 import Models exposing (..)
 import Update exposing (..)
