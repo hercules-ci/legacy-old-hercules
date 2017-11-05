@@ -65,15 +65,15 @@ view model =
           , Textfield.password
           , Textfield.onInput SetPassword
           , Options.css "display" "block" ]
-        , Button.render Mdl
+        ]
+      , Button.render Mdl
           [7]
           model.mdl
           [ Button.raised
           , Button.colored
---        , Button.onClick (SetUsername "")
+        , Button.onClick Submit
           ]
           [ text "Login" ]
-        ]
       ]
 
 update : Msg -> Model -> (( Model, Cmd Msg ), ExternalMsg)
@@ -81,9 +81,8 @@ update msg model =
   case msg of
     Submit ->
       -- TODO validation
-      Debug.log "Submit:" model
---        => Http.send LoginCompleted (Request.User.login "http://localhost:8080" model)
-        => Cmd.none
+      model
+        => Http.send LoginCompleted (Request.User.login "http://localhost:8080" model)
         => NoOp
 
     SetUsername s ->
