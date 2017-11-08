@@ -9,6 +9,8 @@ import Material
 import Material.Button as Button
 import Material.Options as Options
 import Material.Textfield as Textfield
+import OAuth
+import OAuth.Password as OPassword
 import Request.User
 import Route
 import Utils exposing (..)
@@ -27,7 +29,7 @@ type Msg
   = SetUsername String
   | SetPassword String
   | Submit
-  | LoginCompleted (Result Http.Error User)
+  | LoginAnswer (Result Http.Error OAuth.ResponseToken)
   | Mdl (Material.Msg Msg)
 
 type ExternalMsg
@@ -76,7 +78,15 @@ update msg model =
     Submit ->
       -- TODO validation
       model
-        => Http.send LoginCompleted (Request.User.login "http://localhost:8080" model)
+        => Http.send LoginAnswer
+          (OPassword.authenticate (OAuth.Password
+          { credentials = Nothing
+          , scope = []
+          , state = Nothing
+          , username = model.username
+          , password = model.password
+          , url = ""
+          }))
         => NoOp
 
     SetUsername s ->
@@ -87,7 +97,7 @@ update msg model =
       { model | password = s }
         => Cmd.none
         => NoOp
-    LoginCompleted (Err error) ->
+    LoginAnswer (Err error) ->
       model => Cmd.none => NoOp
 {-      let
         errorMessages = case error of
@@ -102,7 +112,7 @@ update msg model =
           => Cmd.none
           => NoOp-}
 
-    LoginCompleted (Ok user) ->
+    LoginAnswer (Ok user) ->
       Debug.log "BLA" model
         => Cmd.batch [ Route.modifyUrl Route.Home]
         => NoOp
