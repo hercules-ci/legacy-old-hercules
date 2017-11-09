@@ -37,6 +37,12 @@ module.exports = {
     inline: true,
     stats: 'errors-only',
     historyApiFallback: true,
+    proxy: {
+      "/api": {
+        target: "http://localhost:8080",
+        pathRewrite: {"^/api" : ""}
+      }
+    },
     headers: {
        "Access-Control-Allow-Origin": "*",
        "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, PATCH, OPTIONS",
