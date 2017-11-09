@@ -75,4 +75,4 @@ setRoute route model =
     
     Just NewProject -> { model | currentPage = NewProjectPage } => Cmd.none
 
-    Just (Jobset a b) -> { model | currentPage = JobsetPage2 a b } => Cmd.none
+    Just (Jobset a b) -> { model | currentPage = JobsetPage a b } => Cmd.none

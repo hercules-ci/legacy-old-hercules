@@ -83,7 +83,7 @@ type alias Evaluation =
     }
 
 
-type alias JobsetPage =
+type alias JobsetPageModel =
     { latestCheckTime : Result String Date.Date
     , latestEvaluationTime : Result String Date.Date
     , latestFinishedEvaluationTime : Result String Date.Date
@@ -104,14 +104,14 @@ type Page
     | LoginPage Login.Model
     | ProjectPage String
     | NewProjectPage
-    | JobsetPage2 String String
+    | JobsetPage String String
 
 type alias AppModel =
     { alert : Maybe Alert
     , hydraConfig : HydraConfig
     , projects : List Project
     , jobsets : Result AjaxError (List Jobset)
-    , jobsetPage : Result AjaxError JobsetPage
+    , jobsetPage : Result AjaxError JobsetPageModel
     , user : Maybe User
     , mdl : Material.Model
     , queueStats : QueueStats

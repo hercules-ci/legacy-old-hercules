@@ -91,7 +91,7 @@ pageToView model =
         NewProjectPage ->
             Pages.Project.view model
 
-        JobsetPage2 projectName jobsetName ->
+        JobsetPage projectName jobsetName ->
             case List.head (List.filter (\p -> p.name == projectName) model.projects) of
                 Just project ->
                     case List.head (List.filter (\j -> j.name == jobsetName) project.jobsets) of

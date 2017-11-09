@@ -60,7 +60,7 @@ breadCrumbs model =
                 ProjectPage project ->
                     [ Breadcrumb project Nothing ]
 
-                JobsetPage2 project jobset ->
+                JobsetPage project jobset ->
                     [ Breadcrumb project (Just (Route.Project project))
                     , Breadcrumb jobset Nothing
                     ]
