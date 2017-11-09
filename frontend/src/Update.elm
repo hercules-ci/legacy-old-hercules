@@ -26,7 +26,7 @@ update msg model =
 
         (LoginMsg subMsg, LoginPage subModel) ->
             let
-              ((pageModel, cmd), msgFromPage) = Debug.log "Upd:" (Login.update subMsg subModel)
+              ((pageModel, cmd), msgFromPage) = Login.update model.appEnv subMsg subModel
               newModel = case msgFromPage of
                 Login.NoOp -> model
             in

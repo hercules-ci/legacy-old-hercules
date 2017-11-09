@@ -9,6 +9,7 @@ import Material
 import Material.Button as Button
 import Material.Options as Options
 import Material.Textfield as Textfield
+import Models.AppEnv exposing (..)
 import OAuth
 import OAuth.Password as OPassword
 import Request.User
@@ -72,8 +73,8 @@ view model =
           [ text "Login" ]
       ]
 
-update : Msg -> Model -> (( Model, Cmd Msg ), ExternalMsg)
-update msg model =
+update : AppEnv -> Msg -> Model -> (( Model, Cmd Msg ), ExternalMsg)
+update env msg model =
   case msg of
     Submit ->
       -- TODO validation
@@ -85,7 +86,7 @@ update msg model =
           , state = Nothing
           , username = model.username
           , password = model.password
-          , url = ""
+          , url = env.backendURL ++ "/login"
           }))
         => NoOp
 

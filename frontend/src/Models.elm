@@ -2,6 +2,7 @@ module Models exposing (..)
 
 import Material
 import Maybe
+import Models.AppEnv exposing (..)
 import Date
 import Pages.Login as Login
 import Route exposing (Route)
@@ -115,8 +116,8 @@ type alias AppModel =
     , mdl : Material.Model
     , queueStats : QueueStats
     , searchString : String
-    , backendURL : String
     , currentPage : Page
+    , appEnv: AppEnv
     }
 
 
@@ -147,7 +148,9 @@ initialModel _ flags =
     in
         { alert = Nothing
         , user = Nothing
-        , backendURL = flags.backendURL
+        , appEnv =
+        { backendURL = flags.backendURL
+        }
         , mdl = Material.model
         , currentPage = HomePage
         , searchString = ""

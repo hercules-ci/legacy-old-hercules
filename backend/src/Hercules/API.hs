@@ -19,7 +19,7 @@ import Text.Blaze.Html5
 import Hercules.Database.Extra       (Project, ProjectWithJobsets)
 import Hercules.OAuth.Authenticators (AuthenticatorName)
 import Hercules.OAuth.Types          (AuthClientState, AuthCode, AuthError,
-                                      AuthStatePacked, FrontendURL)
+                                      AuthStatePacked, FrontendURL, LoginForm)
 import Hercules.OAuth.User
 
 type Unprotected =
@@ -39,6 +39,8 @@ type Pages = "login" :> Get '[HTML] Html
                      :> QueryParam "state" AuthClientState
                      :> QueryParam "frontendURL" FrontendURL
                      :> Get '[HTML] Html
+        :<|> "login" :> ReqBody '[FormUrlEncoded] LoginForm
+                     :> Post '[JSON] ()
         :<|> "auth-callback" :> Capture "authType" AuthenticatorName
                              :> QueryParam "code" AuthCode
                              :> QueryParam "error" AuthError

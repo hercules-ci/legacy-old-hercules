@@ -74,6 +74,7 @@ server env = enter (Nat (runApp env)) api :<|> serveSwagger
               :<|> root
         pages = welcomePage
                 :<|> (mandatory1 .: loginPage)
+                :<|> passwordLogin
                 :<|> (mandatory1 .∵ authCallback)
                 :<|> loggedInPage
                 :<|> (join . withAuthenticated userInfoPage)

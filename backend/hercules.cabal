@@ -50,6 +50,7 @@ library
                      , file-embed
                      , github
                      , hoauth2
+                     , http-api-data
                      , http-client
                      , http-client-tls
                      , interpolatedstring-perl6

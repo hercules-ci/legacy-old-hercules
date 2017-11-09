@@ -4,6 +4,7 @@
 {-# LANGUAGE OverloadedStrings          #-}
 {-# LANGUAGE RecordWildCards            #-}
 {-# LANGUAGE StrictData                 #-}
+{-# LANGUAGE DeriveGeneric              #-}
 
 {-|
 A module describing some newtypes and data types to handle information used
@@ -32,6 +33,9 @@ module Hercules.OAuth.Types
   , AccessTokenEndpoint(..)
   , FrontendURL(..)
   , PackedJWT(..)
+  -- * Password auth
+  , GrantType (..)
+  , LoginForm (..)
   ) where
 
 import Data.Aeson
@@ -41,8 +45,29 @@ import GHC.Generics          (Generic)
 import Network.OAuth.OAuth2  hiding (URI)
 import Network.URI.Extra
 import Servant               (FromHttpApiData)
+import Web.FormUrlEncoded
 
 import Hercules.OAuth.User
+
+data GrantType = Password
+  deriving (Eq, Show, Generic)
+
+data LoginForm = LoginForm
+  { loginFormGrantType :: GrantType
+  , loginFormUsername :: Text
+  , loginFormPassword :: Text
+  } deriving (Eq, Show, Generic)
+
+-- we cannot derive this as the field names don't match
+instance FromForm LoginForm where
+  fromForm f = LoginForm
+    <$> (do
+      gr <- parseUnique "grant_type" f
+      case (gr :: Text) of
+        "password" -> pure Password
+        _ -> Left "Invalid grant type")
+    <*> parseUnique "username" f
+    <*> parseUnique "password"  f
 
 -- | The name of an authenticator, "google" or "github" for example
 newtype AuthenticatorName = AuthenticatorName
