@@ -1,6 +1,6 @@
 { backend ? (import ./../backend {})
 , pkgs ? (import ./../pkgs.nix) {}
-, backendURL ? "http://localhost:8080" }:
+, backendURL ? "http://localhost:3000/api" }:
 
 with pkgs;
 
