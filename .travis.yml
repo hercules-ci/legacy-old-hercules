@@ -1,4 +1,6 @@
 language: nix
+# sadly containers have 12GB of total HDD space, which is not enough
+sudo: enabled
 cache:
   directories:
   - frontend/elm-stuff
@@ -8,8 +10,6 @@ script:
 - nix-shell --run "npm i && elm package install -y" -j 8
 - popd
 - nix-build
-after_failure:
-- df -h
 deploy:
   provider: s3
   access_key_id: AKIAJETSFTAMXGNCGC6Q
