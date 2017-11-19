@@ -8,6 +8,8 @@ script:
 - nix-shell --run "npm i && elm package install -y" -j 8
 - popd
 - nix-build
+after_failure:
+- df -h
 deploy:
   provider: s3
   access_key_id: AKIAJETSFTAMXGNCGC6Q
