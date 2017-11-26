@@ -1,4 +1,6 @@
 language: nix
+# sadly containers have 12GB of total HDD space, which is not enough
+sudo: enabled
 cache:
   directories:
   - frontend/elm-stuff
