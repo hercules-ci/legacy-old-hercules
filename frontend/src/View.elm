@@ -47,13 +47,21 @@ viewBody model =
                     ]
                 ]
     in
+        [Options.div
+            [   Options.css "flex" "1"
+                ,Options.css "position" "absolute"
+                ,Options.css "height" "75%"
+                ,Options.css "width" "100%"
+            ]
+
+            (
         Options.div
             [ Options.css "margin" "30px"
             , Options.css "min-height" "100%"
             ]
             (pageToView model)
             :: [ Footer.mini
-                    [ Options.css "position" "absolute"
+                    [ Options.css "position" "relative"
                     , Options.css "bottom" "-70px"
                     , Options.css "width" "100%"
                     ]
@@ -73,6 +81,8 @@ viewBody model =
                             ]
                     }
                ]
+            )
+        ]    
 
 
 pageToView : AppModel -> List (Html Msg)
