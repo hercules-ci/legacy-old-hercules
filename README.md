@@ -1,3 +1,7 @@
+# This project is abandoned and has been restarted in different form: https://hercules-ci.com
+
+---
+
 # Hercules
 
 [![Build Status](https://travis-ci.org/hercules-ci/hercules.svg?branch=master)](https://travis-ci.org/hercules-ci/hercules)
