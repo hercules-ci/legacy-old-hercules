@@ -80,6 +80,7 @@ library
                      , text
                      , time
                      , wai
+                     , wai-cors
                      , wai-extra
                      , warp
                      , wl-pprint-text
